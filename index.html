@@ -267,6 +267,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="setup-text">In your sheet: <b>Extensions → Apps Script</b> → paste this code → Save → Deploy → New Deployment → Web App → "Anyone" → Deploy → copy the URL</div>
       <div class="code-block" id="apps-script-code"></div>
       <button class="copy-btn" onclick="copyScript()">📋 Copy script</button>
+      <div id="script-copy-box" style="display:none;margin-top:10px;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Select all and copy manually:</div>
+        <textarea id="script-select-all" style="width:100%;height:120px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-family:'DM Mono',monospace;font-size:10px;padding:10px;resize:none;" onclick="this.select()"></textarea>
+      </div>
     </div>
   </div>
   <div class="setup-step">
@@ -475,6 +479,8 @@ function init() {
   document.getElementById('rate-display').textContent = currentRate.toFixed(2);
   document.getElementById('calc-rate-shown').textContent = currentRate.toFixed(2) + ' AED/kWh';
   document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
+  const scriptBox = document.getElementById('script-select-all');
+  if(scriptBox) scriptBox.value = APPS_SCRIPT;
   if (sheetUrl) {
     document.getElementById('sheet-url').value = sheetUrl;
     document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
@@ -755,7 +761,26 @@ function saveSheetUrl() {
   document.getElementById('sheet-status').className='sheet-status connected';
   showToast('Sheet URL saved ✓','success');
 }
-function copyScript(){navigator.clipboard.writeText(APPS_SCRIPT).then(()=>showToast('Script copied ✓','success'));}
+function copyScript(){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = APPS_SCRIPT;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.style.top = '0';
+    ta.style.left = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, 99999);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(ok) { showToast('Script copied ✓','success'); return; }
+  } catch(e) {}
+  // Fallback: show in a selectable box
+  document.getElementById('script-copy-box').style.display='block';
+  showToast('Select all text below and copy','success');
+}
 function openRateModal(){document.getElementById('rate-modal').classList.add('open');}
 function closeRateModal(){document.getElementById('rate-modal').classList.remove('open');}
 function setRate(r){
