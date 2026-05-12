@@ -243,6 +243,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div id="chart-cost"></div>
   </div>
   <button class="btn btn-secondary" onclick="syncToSheet()" style="margin-top:0;">↑ Sync unsynced to Google Sheet</button>
+  <button class="btn btn-ghost" onclick="importFromSheet()" style="margin-top:8px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">↓ Import all from Google Sheet</button>
   <button class="btn btn-ghost" onclick="fullResync()" style="margin-top:8px;font-size:13px;">↺ Full resync (clear + rewrite all)</button>
 </div>
 
@@ -368,49 +369,46 @@ let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
-const APPS_SCRIPT = `function doPost(e) {
-  return handleRequest(e);
-}
-function doGet(e) {
-  return handleRequest(e);
-}
-function handleRequest(e) {
+const APPS_SCRIPT = `function doPost(e) { return handleRequest(e, e.postData ? JSON.parse(e.postData.contents) : e.parameter); }
+function doGet(e) { return handleRequest(e, e.parameter); }
+
+function handleRequest(e, p) {
   var output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
-  
   try {
-    var p = (e.parameter && Object.keys(e.parameter).length > 0) ? e.parameter : JSON.parse(e.postData.contents);
     var sheet = SpreadsheetApp.getActiveSpreadsheet();
     var log = sheet.getSheetByName("Log") || sheet.insertSheet("Log");
-    
     if (log.getLastRow() === 0) {
       log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
       log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
     }
-    
     if (p.action === "add") {
       log.appendRow([p.date,p.time,p.location,Number(p.before),Number(p.after),Number(p.kwh),Number(p.rate),Number(p.cost),p.notes||""]);
       updateSummary(sheet);
-      output.setContent(JSON.stringify({status:"ok",action:"add"}));
+      output.setContent(JSON.stringify({status:"ok"}));
     } else if (p.action === "resync") {
       var data = JSON.parse(p.data);
       log.clearContents();
       log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
       log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-      for (var i=0;i<data.length;i++) {
-        var s=data[i];
-        log.appendRow([s.date,s.time,s.location,Number(s.before),Number(s.after),Number(s.kwh),Number(s.rate),Number(s.cost),s.notes||""]);
-      }
+      for (var i=0;i<data.length;i++){var s=data[i];log.appendRow([s.date,s.time,s.location,Number(s.before),Number(s.after),Number(s.kwh),Number(s.rate),Number(s.cost),s.notes||""]);}
       updateSummary(sheet);
-      output.setContent(JSON.stringify({status:"ok",action:"resync",count:data.length}));
+      output.setContent(JSON.stringify({status:"ok",count:data.length}));
+    } else if (p.action === "read") {
+      var rows = log.getDataRange().getValues();
+      var result = [];
+      for (var i=1;i<rows.length;i++){
+        var r=rows[i]; if(!r[0]) continue;
+        result.push({date:String(r[0]),time:String(r[1]),location:String(r[2]),before:Number(r[3]),after:Number(r[4]),kwh:Number(r[5]),rate:Number(r[6]),cost:Number(r[7]),notes:String(r[8]||"")});
+      }
+      output.setContent(JSON.stringify({status:"ok",sessions:result}));
     } else {
       output.setContent(JSON.stringify({status:"ok",message:"connected"}));
     }
-  } catch(err) {
-    output.setContent(JSON.stringify({status:"error",message:err.toString()}));
-  }
+  } catch(err) { output.setContent(JSON.stringify({status:"error",message:err.toString()})); }
   return output;
 }
+
 function updateSummary(sheet) {
   var log = sheet.getSheetByName("Log");
   var sum = sheet.getSheetByName("Summary") || sheet.insertSheet("Summary");
@@ -419,17 +417,9 @@ function updateSummary(sheet) {
   sum.getRange(1,1,1,5).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
   var rows = log.getDataRange().getValues();
   var months = {};
-  for (var i=1;i<rows.length;i++) {
-    var r=rows[i]; if(!r[0]) continue;
-    var m=String(r[0]).substring(0,7);
-    if(!months[m]) months[m]={count:0,kwh:0,cost:0};
-    months[m].count++; months[m].kwh+=parseFloat(r[5])||0; months[m].cost+=parseFloat(r[7])||0;
-  }
+  for (var i=1;i<rows.length;i++){var r=rows[i];if(!r[0])continue;var m=String(r[0]).substring(0,7);if(!months[m])months[m]={count:0,kwh:0,cost:0};months[m].count++;months[m].kwh+=parseFloat(r[5])||0;months[m].cost+=parseFloat(r[7])||0;}
   var keys=Object.keys(months).sort();
-  for (var k=0;k<keys.length;k++) {
-    var mo=months[keys[k]];
-    sum.appendRow([keys[k],mo.count,mo.kwh.toFixed(2),mo.cost.toFixed(2),(mo.cost/mo.count).toFixed(2)]);
-  }
+  for(var k=0;k<keys.length;k++){var mo=months[keys[k]];sum.appendRow([keys[k],mo.count,mo.kwh.toFixed(2),mo.cost.toFixed(2),(mo.cost/mo.count).toFixed(2)]);}
 }`;
 
 function init() {
@@ -635,6 +625,37 @@ async function fullResync() {
   showToast('Full resync done ✓ — check your Sheet','success');
 }
 
+
+async function importFromSheet() {
+  if(!sheetUrl){showToast('Set up Google Sheet first','error');return;}
+  showToast('Importing from Google Sheet...','success');
+  try {
+    const url = sheetUrl + '?action=read&t=' + Date.now();
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.status !== 'ok' || !data.sessions){showToast('Could not read Sheet data','error');return;}
+    const imported = data.sessions;
+    if(!imported.length){showToast('No data found in Sheet','error');return;}
+    // Merge: keep local sessions not in sheet, add all sheet sessions
+    const newSessions = imported.map((s,i) => ({
+      id: 'sheet_' + i + '_' + (s.date||'').replace(/-/g,''),
+      date: s.date, time: s.time || '00:00',
+      location: s.location || 'Dubai Office',
+      before: s.before, after: s.after,
+      kwh: s.kwh, rate: s.rate || 0.28, cost: s.cost,
+      notes: s.notes || '', synced: true
+    }));
+    // Sort newest first
+    newSessions.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+    sessions = newSessions;
+    saveSessions();
+    renderHistory(); renderSummary();
+    showToast('Imported ' + imported.length + ' sessions ✓', 'success');
+  } catch(e) {
+    showToast('Import failed — redeploy Apps Script', 'error');
+    console.error('Import error:', e);
+  }
+}
 
 function saveSheetUrl() {
   const url=document.getElementById('sheet-url').value.trim();
