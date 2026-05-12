@@ -114,6 +114,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sheet-status{margin-top:10px;padding:10px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;display:none;}
 .sheet-status.connected{display:block;background:rgba(0,229,160,0.1);color:var(--accent);border:1px solid rgba(0,229,160,0.2);}
 .sheet-status.error{display:block;background:rgba(224,82,82,0.1);color:var(--danger);border:1px solid rgba(224,82,82,0.2);}
+.rate-opt-btn{padding:9px 0;border-radius:var(--rs);font-size:13px;font-weight:600;font-family:'DM Mono',monospace;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.rate-opt-btn.active{background:var(--accent-dim);border-color:rgba(0,229,160,0.4);color:var(--accent);}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);display:none;align-items:flex-end;justify-content:center;}
@@ -287,19 +289,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-handle"></div>
     <div class="modal-title">Edit session</div>
     <input type="hidden" id="edit-id">
-    <div class="form-group">
-      <label class="form-label">Date</label>
-      <input type="date" class="form-input" id="edit-date">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
+    <div class="form-row" style="margin-bottom:12px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="edit-date">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
         <label class="form-label">Time</label>
         <input type="time" class="form-input" id="edit-time">
       </div>
-      <div class="form-group">
-        <label class="form-label">Location</label>
-        <input type="text" class="form-input" id="edit-location">
-      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input type="text" class="form-input" id="edit-location">
     </div>
     <div class="pct-section-label">Battery percentage</div>
     <div class="pct-group">
@@ -331,6 +333,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="form-group">
       <label class="form-label">Notes</label>
       <input type="text" class="form-input" id="edit-notes">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tariff rate (AED/kWh)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:4px;">
+        <button class="rate-opt-btn" onclick="setEditRate(0.23)" id="erate-023">0.23</button>
+        <button class="rate-opt-btn" onclick="setEditRate(0.28)" id="erate-028">0.28</button>
+        <button class="rate-opt-btn" onclick="setEditRate(0.38)" id="erate-038">0.38</button>
+      </div>
+      <input type="number" class="form-input" id="edit-rate" step="0.01" min="0" placeholder="Custom rate" style="margin-top:6px;" oninput="recalcEdit()">
     </div>
     <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
     <button class="btn btn-danger" style="margin-top:8px;" onclick="deleteSession()">Delete session</button>
@@ -475,10 +486,21 @@ function recalculate() {
 }
 function recalcEdit() {
   const b = pctVals['edit-before'], a = pctVals['edit-after'];
-  if (a <= b) return;
+  if(a <= b) return;
+  const rateEl = document.getElementById('edit-rate');
+  const r = rateEl ? (parseFloat(rateEl.value)||currentRate) : currentRate;
   const kwh = (BATTERY_KWH * (a-b) / 100).toFixed(2);
   document.getElementById('edit-calc-kwh').textContent = kwh + ' kWh';
-  document.getElementById('edit-calc-cost').textContent = (parseFloat(kwh)*currentRate).toFixed(2) + ' AED';
+  document.getElementById('edit-calc-cost').textContent = (parseFloat(kwh)*r).toFixed(2) + ' AED';
+}
+function setEditRate(r) {
+  const el = document.getElementById('edit-rate');
+  if(el) el.value = r;
+  document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
+  const map = {0.23:'erate-023', 0.28:'erate-028', 0.38:'erate-038'};
+  const btn = document.getElementById(map[r]);
+  if(btn) btn.classList.add('active');
+  recalcEdit();
 }
 
 function switchTab(tab) {
@@ -547,11 +569,30 @@ function renderSummary() {
 function openEdit(id) {
   const s=sessions.find(x=>x.id===id); if(!s) return;
   document.getElementById('edit-id').value=s.id;
-  document.getElementById('edit-date').value=s.date;
-  document.getElementById('edit-time').value=s.time;
-  document.getElementById('edit-location').value=s.location;
+  // Normalize date - strip any time component, handle various formats
+  let dateVal = s.date ? String(s.date).split('T')[0].trim() : '';
+  // Handle Google Sheets date serial numbers
+  if(dateVal && !dateVal.includes('-') && !isNaN(dateVal)) {
+    const jsDate = new Date((parseFloat(dateVal) - 25569) * 86400000);
+    dateVal = jsDate.toISOString().split('T')[0];
+  }
+  document.getElementById('edit-date').value = dateVal;
+  // Normalize time - ensure HH:MM format
+  let timeVal = s.time ? String(s.time).trim() : '';
+  if(timeVal && timeVal.length === 4 && !timeVal.includes(':')) timeVal = timeVal.slice(0,2)+':'+timeVal.slice(2);
+  if(!timeVal.includes(':') && timeVal) timeVal = '00:00';
+  document.getElementById('edit-time').value = timeVal.slice(0,5);
+  document.getElementById('edit-location').value=s.location||'Dubai Office';
   document.getElementById('edit-notes').value=s.notes||'';
-  setPct('edit-before',s.before); setPct('edit-after',s.after); recalcEdit();
+  setPct('edit-before', parseInt(s.before)||0);
+  setPct('edit-after', parseInt(s.after)||0);
+  const sessionRate = s.rate || currentRate;
+  document.getElementById('edit-rate').value = sessionRate;
+  // Highlight matching preset button
+  document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
+  const presets = [0.23, 0.28, 0.38];
+  if(presets.includes(sessionRate)) setEditRate(sessionRate);
+  recalcEdit();
   document.getElementById('edit-modal').classList.add('open');
 }
 function saveEdit() {
@@ -559,11 +600,14 @@ function saveEdit() {
   const idx=sessions.findIndex(x=>x.id===id); if(idx===-1) return;
   const b=pctVals['edit-before'], a=pctVals['edit-after'];
   if(a<=b){showToast('After must be greater than before','error');return;}
+  const editedRate = parseFloat(document.getElementById('edit-rate').value) || currentRate;
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
-  const cost=parseFloat((kwh*currentRate).toFixed(2));
-  sessions[idx]={...sessions[idx],date:document.getElementById('edit-date').value,time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,cost,notes:document.getElementById('edit-notes').value,synced:false};
+  const cost=parseFloat((kwh*editedRate).toFixed(2));
+  sessions[idx]={...sessions[idx],date:document.getElementById('edit-date').value,time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,rate:editedRate,cost,notes:document.getElementById('edit-notes').value,synced:false};
   saveSessions(); closeModal(); renderHistory(); renderSummary();
   showToast('Session updated ✓','success');
+  // Push full resync to sheet so edits overwrite old rows
+  if(sheetUrl) fullResync();
 }
 function deleteSession() {
   const id=document.getElementById('edit-id').value;
@@ -571,6 +615,7 @@ function deleteSession() {
   sessions=sessions.filter(s=>s.id!==id);
   saveSessions(); closeModal(); renderHistory(); renderSummary();
   showToast('Session deleted','error');
+  if(sheetUrl) fullResync(true);
 }
 function closeModal(){document.getElementById('edit-modal').classList.remove('open');}
 
@@ -616,13 +661,14 @@ async function syncToSheet() {
   showToast('Synced '+unsynced.length+' sessions ✓','success');
 }
 
-async function fullResync() {
-  if(!sheetUrl){showToast('Set up Google Sheet first','error');return;}
-  showToast('Full resync starting...','success');
+async function fullResync(silent=false) {
+  if(!sheetUrl) return;
+  if(!silent) showToast('Resyncing all to Sheet...','success');
   const data=JSON.stringify(sessions.map(s=>({date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''})));
   await sendToSheet({action:'resync',data});
   sessions.forEach(s=>s.synced=true); saveSessions(); renderHistory();
-  showToast('Full resync done ✓ — check your Sheet','success');
+  if(!silent) showToast('Sheet updated ✓','success');
+  else showToast('Sheet synced ✓','success');
 }
 
 
@@ -637,14 +683,25 @@ async function importFromSheet() {
     const imported = data.sessions;
     if(!imported.length){showToast('No data found in Sheet','error');return;}
     // Merge: keep local sessions not in sheet, add all sheet sessions
-    const newSessions = imported.map((s,i) => ({
-      id: 'sheet_' + i + '_' + (s.date||'').replace(/-/g,''),
-      date: s.date, time: s.time || '00:00',
-      location: s.location || 'Dubai Office',
-      before: s.before, after: s.after,
-      kwh: s.kwh, rate: s.rate || 0.28, cost: s.cost,
-      notes: s.notes || '', synced: true
-    }));
+    const newSessions = imported.map((s,i) => {
+      // Normalize date from sheet
+      let d = String(s.date||'').split('T')[0].trim();
+      if(d && !d.includes('-') && !isNaN(d)) {
+        const jsDate = new Date((parseFloat(d)-25569)*86400000);
+        d = jsDate.toISOString().split('T')[0];
+      }
+      // Normalize time
+      let t = String(s.time||'').trim().slice(0,5);
+      if(!t || !t.includes(':')) t = '00:00';
+      return {
+        id: 'sheet_' + i + '_' + d.replace(/-/g,''),
+        date: d, time: t,
+        location: s.location || 'Dubai Office',
+        before: Number(s.before)||0, after: Number(s.after)||0,
+        kwh: Number(s.kwh)||0, rate: Number(s.rate)||0.28,
+        cost: Number(s.cost)||0, notes: s.notes || '', synced: true
+      };
+    });
     // Sort newest first
     newSessions.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
     sessions = newSessions;
