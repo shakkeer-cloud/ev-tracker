@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EV Tracker">
+<title>EV Charge Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #111720;
+    --surface2: #161e2a;
+    --surface3: #1c2535;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eef5;
+    --text2: #7a8fa6;
+    --text3: #4a5c70;
+    --accent: #00e5a0;
+    --accent2: #00b37a;
+    --accent-dim: rgba(0,229,160,0.12);
+    --accent-dim2: rgba(0,229,160,0.06);
+    --warn: #f5a623;
+    --danger: #e05252;
+    --info: #4a90d9;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,20,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-title { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .nav-sub { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 4px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 7px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2); cursor: pointer; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--accent-dim); border-color: rgba(0,229,160,0.4);
+    color: var(--accent);
+  }
+
+  /* PAGES */
+  .page { display: none; padding: 20px; }
+  .page.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card-title { font-size: 13px; color: var(--text2); margin-bottom: 12px; font-weight: 500; }
+
+  /* STAT GRID */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'DM Mono', monospace; }
+  .stat-value { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+  .stat-unit { font-size: 12px; color: var(--text2); font-weight: 400; margin-left: 2px; }
+  .stat-accent .stat-value { color: var(--accent); }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input {
+    width: 100%; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: rgba(0,229,160,0.5); }
+  .form-input::placeholder { color: var(--text3); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* PERCENTAGE INPUTS */
+  .pct-group {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .pct-box {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 14px; text-align: center;
+  }
+  .pct-label { font-size: 11px; color: var(--text3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .pct-input {
+    width: 100%; text-align: center; font-size: 28px; font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    background: transparent; border: none; outline: none;
+    color: var(--text); letter-spacing: -1px;
+  }
+  .pct-sign { font-size: 16px; color: var(--text2); }
+  .pct-before .pct-input { color: var(--warn); }
+  .pct-after .pct-input { color: var(--accent); }
+
+  /* ARROW BETWEEN */
+  .pct-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text3); margin-bottom: 16px;
+    position: relative;
+  }
+  .pct-arrow::before, .pct-arrow::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .pct-arrow span { padding: 0 12px; }
+
+  /* CALC PREVIEW */
+  .calc-preview {
+    background: var(--accent-dim2); border: 1px solid rgba(0,229,160,0.2);
+    border-radius: var(--radius-sm); padding: 14px;
+    margin-bottom: 16px; display: none;
+  }
+  .calc-preview.visible { display: block; }
+  .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .calc-row:last-child { margin-bottom: 0; border-top: 1px solid rgba(0,229,160,0.15); padding-top: 8px; margin-top: 2px; }
+  .calc-key { font-size: 12px; color: var(--text2); }
+  .calc-val { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .calc-total { color: var(--accent); font-size: 15px; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%; padding: 14px; border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s; letter-spacing: -0.2px;
+  }
+  .btn-primary {
+    background: var(--accent); color: #0a0e14;
+  }
+  .btn-primary:hover { background: #00ffb3; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--surface3); color: var(--text3); cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border2); margin-top: 8px;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border); font-size: 13px; padding: 10px;
+  }
+  .btn-danger {
+    background: rgba(224,82,82,0.1); color: var(--danger);
+    border: 1px solid rgba(224,82,82,0.2); font-size: 13px; padding: 10px;
+  }
+
+  /* LOG ENTRIES */
+  .log-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .log-entry-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .log-entry-date { font-size: 13px; font-weight: 600; color: var(--text); }
+  .log-entry-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-entry-cost { font-size: 18px; font-weight: 600; color: var(--accent); font-family: 'DM Mono', monospace; }
+  .log-entry-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; padding: 4px 9px; border-radius: 100px;
+    font-family: 'DM Mono', monospace; font-weight: 500;
+  }
+  .badge-kwh { background: rgba(74,144,217,0.15); color: var(--info); }
+  .badge-pct { background: rgba(245,166,35,0.15); color: var(--warn); }
+  .log-actions { display: flex; gap: 6px; margin-top: 12px; }
+  .log-actions .btn { flex: 1; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text3); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state-text { font-size: 14px; }
+
+  /* MONTHLY CHART */
+  .chart-bar-group { margin-bottom: 16px; }
+  .chart-month { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .chart-bar-track { height: 8px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 100px; background: var(--accent); transition: width 0.6s ease; }
+  .chart-bar-fill.cost { background: var(--warn); }
+
+  /* SETUP */
+  .setup-step {
+    display: flex; gap: 14px; margin-bottom: 20px;
+  }
+  .setup-num {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.3);
+    color: var(--accent); font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .setup-body { flex: 1; }
+  .setup-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .setup-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .code-block {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 12px;
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
+    margin-top: 10px; overflow-x: auto; white-space: pre-wrap; line-height: 1.6;
+  }
+  .copy-btn {
+    margin-top: 8px; padding: 8px 14px; font-size: 12px;
+    background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text2);
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: rgba(0,229,160,0.3); }
+  .url-input-group { display: flex; gap: 6px; margin-top: 10px; }
+  .url-input-group .form-input { flex: 1; font-size: 12px; }
+  .url-save-btn {
+    padding: 12px 14px; background: var(--accent); color: #0a0e14;
+    border: none; border-radius: var(--radius-sm); font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; white-space: nowrap;
+  }
+  .sheet-status {
+    margin-top: 10px; padding: 10px 14px;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+    display: none;
+  }
+  .sheet-status.connected { display: block; background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+  .sheet-status.error { display: block; background: rgba(224,82,82,0.1); color: var(--danger); border: 1px solid rgba(224,82,82,0.2); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); display: none;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px 20px 0 0; padding: 24px 20px;
+    width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px; height: 4px; background: var(--border2);
+    border-radius: 100px; margin: 0 auto 20px;
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 100px; padding: 12px 20px; font-size: 14px; font-weight: 500;
+    z-index: 300; transition: transform 0.3s ease; white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { color: var(--accent); border-color: rgba(0,229,160,0.3); }
+  .toast.error { color: var(--danger); border-color: rgba(224,82,82,0.3); }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* RATE CONFIG */
+  .rate-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 100px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    font-size: 12px; color: var(--text2); cursor: pointer;
+  }
+  .rate-pill span { color: var(--accent); font-family: 'DM Mono', monospace; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-icon">⚡</div>
+    <div>
+      <div class="nav-title">EV Charge Tracker</div>
+      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh</div>
+    </div>
+  </div>
+  <div class="rate-pill" onclick="openRateModal()">
+    Rate: <span id="rate-display">0.28</span> AED
+  </div>
+</nav>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('log')">Log Session</button>
+  <button class="tab" onclick="switchTab('history')">History</button>
+  <button class="tab" onclick="switchTab('summary')">Summary</button>
+  <button class="tab" onclick="switchTab('setup')">Setup</button>
+</div>
+
+<!-- PAGE: LOG SESSION -->
+<div class="page active" id="page-log">
+
+  <div class="card">
+    <div class="form-group">
+      <label class="form-label">Charging date</label>
+      <input type="date" class="form-input" id="log-date">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input type="time" class="form-input" id="log-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="log-location" value="Dubai Office" placeholder="Dubai Office">
+      </div>
+    </div>
+    <div class="pct-group">
+      <div class="pct-box pct-before">
+        <div class="pct-label">Before charging</div>
+        <input type="number" class="pct-input" id="pct-before" min="0" max="100" placeholder="0" oninput="recalculate()">
+        <div class="pct-sign">%</div>
+      </div>
+      <div class="pct-box pct-after">
+        <div class="pct-label">After charging</div>
+        <input type="number" class="pct-input" id="pct-after" min="0" max="100" placeholder="0" oninput="recalculate()">
+        <div class="pct-sign">%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC PREVIEW -->
+  <div class="calc-preview" id="calc-preview">
+    <div class="calc-row">
+      <span class="calc-key">Battery change</span>
+      <span class="calc-val" id="calc-delta">—</span>
+    </div>
+    <div class="calc-row">
+      <span class="calc-key">kWh charged</span>
+      <span class="calc-val" id="calc-kwh">—</span>
+    </div>
+    <div class="calc-row">
+      <span class="calc-key">Rate</span>
+      <span class="calc-val" id="calc-rate-shown">0.28 AED/kWh</span>
+    </div>
+    <div class="calc-row">
+      <span class="calc-key">Estimated cost</span>
+      <span class="calc-val calc-total" id="calc-cost">—</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Notes (optional)</label>
+    <input type="text" class="form-input" id="log-notes" placeholder="e.g. Fast charger, Level 2...">
+  </div>
+
+  <button class="btn btn-primary" onclick="saveSession()" id="save-btn">Save session</button>
+</div>
+
+<!-- PAGE: HISTORY -->
+<div class="page" id="page-history">
+  <div class="section-head">
+    <div class="section-title">All sessions</div>
+    <div id="history-count" style="font-size:12px;color:var(--text3);"></div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- PAGE: SUMMARY -->
+<div class="page" id="page-summary">
+  <div class="stat-grid">
+    <div class="stat-card stat-accent">
+      <div class="stat-label">Total kWh</div>
+      <div class="stat-value" id="sum-kwh">0<span class="stat-unit">kWh</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total cost</div>
+      <div class="stat-value" id="sum-cost">0<span class="stat-unit">AED</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sessions</div>
+      <div class="stat-value" id="sum-sessions">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg per session</div>
+      <div class="stat-value" id="sum-avg">0<span class="stat-unit">AED</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Monthly kWh charged</div>
+    <div id="chart-kwh"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Monthly cost (AED)</div>
+    <div id="chart-cost"></div>
+  </div>
+
+  <button class="btn btn-secondary" onclick="syncToSheet()" style="margin-top:4px;">
+    ↑ Sync all to Google Sheet
+  </button>
+</div>
+
+<!-- PAGE: SETUP -->
+<div class="page" id="page-setup">
+  <div class="section-head">
+    <div class="section-title">Google Sheets Setup</div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">1</div>
+    <div class="setup-body">
+      <div class="setup-title">Create Google Sheet</div>
+      <div class="setup-text">Open Google Sheets and create a new spreadsheet. Name it "EV Charge Tracker".</div>
+      <button class="btn btn-ghost" style="margin-top:10px;width:auto;padding:8px 16px;font-size:13px;" onclick="openLink('https://sheets.new')">Open Google Sheets ↗</button>
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">2</div>
+    <div class="setup-body">
+      <div class="setup-title">Add Apps Script</div>
+      <div class="setup-text">In your sheet: Extensions → Apps Script → paste this code → Save → Deploy → New Deployment → Web App → Anyone → Deploy → Copy URL</div>
+      <div class="code-block" id="apps-script-code"></div>
+      <button class="copy-btn" onclick="copyScript()">Copy script</button>
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">3</div>
+    <div class="setup-body">
+      <div class="setup-title">Paste your deployment URL</div>
+      <div class="setup-text">After deploying, paste the Web App URL here:</div>
+      <div class="url-input-group">
+        <input type="url" class="form-input" id="sheet-url" placeholder="https://script.google.com/macros/s/...">
+        <button class="url-save-btn" onclick="saveSheetUrl()">Save</button>
+      </div>
+      <div class="sheet-status" id="sheet-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit session</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-input" id="edit-date">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input type="time" class="form-input" id="edit-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="edit-location">
+      </div>
+    </div>
+    <div class="pct-group">
+      <div class="pct-box pct-before">
+        <div class="pct-label">Before</div>
+        <input type="number" class="pct-input" id="edit-before" min="0" max="100" oninput="recalcEdit()">
+        <div class="pct-sign">%</div>
+      </div>
+      <div class="pct-box pct-after">
+        <div class="pct-label">After</div>
+        <input type="number" class="pct-input" id="edit-after" min="0" max="100" oninput="recalcEdit()">
+        <div class="pct-sign">%</div>
+      </div>
+    </div>
+    <div class="calc-preview visible" id="edit-calc-preview">
+      <div class="calc-row">
+        <span class="calc-key">kWh charged</span>
+        <span class="calc-val" id="edit-calc-kwh">—</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-key">Cost</span>
+        <span class="calc-val calc-total" id="edit-calc-cost">—</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" class="form-input" id="edit-notes">
+    </div>
+    <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
+    <button class="btn btn-danger" style="margin-top:8px;" onclick="deleteSession()">Delete session</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- RATE MODAL -->
+<div class="modal-overlay" id="rate-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">DEWA electricity rate</div>
+    <div class="setup-text" style="margin-bottom:16px;color:var(--text2);font-size:13px;">Dubai commercial tariff — adjust to match your office consumption slab.</div>
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-ghost" onclick="setRate(0.23)">0–1,000 kWh/month → <strong>0.23 AED/kWh</strong></button>
+        <button class="btn btn-ghost" onclick="setRate(0.28)" id="rate-btn-28" style="border-color:rgba(0,229,160,0.4);color:var(--accent);">1,001–3,000 kWh/month → <strong>0.28 AED/kWh</strong> ✓</button>
+        <button class="btn btn-ghost" onclick="setRate(0.38)">Above 3,000 kWh/month → <strong>0.38 AED/kWh</strong></button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Or enter custom rate</label>
+      <input type="number" class="form-input" id="custom-rate" step="0.01" min="0" placeholder="e.g. 0.28">
+    </div>
+    <button class="btn btn-primary" onclick="saveCustomRate()">Apply</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeRateModal()">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.28');
+let sessions = JSON.parse(localStorage.getItem('ev_sessions') || '[]');
+let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
+
+const BATTERY_KWH = 27.28;
+
+const APPS_SCRIPT = `function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var log = sheet.getSheetByName("Log") || sheet.insertSheet("Log");
+  var summary = sheet.getSheetByName("Summary") || sheet.insertSheet("Summary");
+  
+  if (log.getLastRow() === 0) {
+    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
+    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#0a0e14").setFontColor("#00e5a0");
+  }
+  
+  var data = JSON.parse(e.postData.contents);
+  
+  if (data.action === "sync") {
+    log.clearContents();
+    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
+    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#0a0e14").setFontColor("#00e5a0");
+    for (var i = 0; i < data.sessions.length; i++) {
+      var s = data.sessions[i];
+      log.appendRow([s.date,s.time,s.location,s.before,s.after,s.kwh,s.rate,s.cost,s.notes]);
+    }
+    rebuildSummary(sheet, data.sessions);
+    return ContentService.createTextOutput(JSON.stringify({status:"ok"})).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var s = data;
+  log.appendRow([s.date,s.time,s.location,s.before,s.after,s.kwh,s.rate,s.cost,s.notes]);
+  return ContentService.createTextOutput(JSON.stringify({status:"ok"})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function rebuildSummary(sheet, sessions) {
+  var sum = sheet.getSheetByName("Summary") || sheet.insertSheet("Summary");
+  sum.clearContents();
+  sum.appendRow(["Month","Sessions","kWh Charged","Total Cost AED","Avg Cost AED"]);
+  sum.getRange(1,1,1,5).setFontWeight("bold").setBackground("#0a0e14").setFontColor("#00e5a0");
+  var months = {};
+  for (var i = 0; i < sessions.length; i++) {
+    var s = sessions[i];
+    var m = s.date.substring(0,7);
+    if (!months[m]) months[m] = {count:0,kwh:0,cost:0};
+    months[m].count++;
+    months[m].kwh += parseFloat(s.kwh);
+    months[m].cost += parseFloat(s.cost);
+  }
+  var keys = Object.keys(months).sort();
+  for (var k = 0; k < keys.length; k++) {
+    var mo = months[keys[k]];
+    sum.appendRow([keys[k], mo.count, mo.kwh.toFixed(2), mo.cost.toFixed(2), (mo.cost/mo.count).toFixed(2)]);
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({status:"connected"})).setMimeType(ContentService.MimeType.JSON);
+}`;
+
+function init() {
+  const now = new Date();
+  document.getElementById('log-date').value = now.toISOString().split('T')[0];
+  document.getElementById('log-time').value = now.toTimeString().slice(0,5);
+  document.getElementById('rate-display').textContent = currentRate.toFixed(2);
+  document.getElementById('calc-rate-shown').textContent = currentRate.toFixed(2) + ' AED/kWh';
+  document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
+  if (sheetUrl) {
+    document.getElementById('sheet-url').value = sheetUrl;
+    document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
+    document.getElementById('sheet-status').className = 'sheet-status connected';
+  }
+  renderHistory();
+  renderSummary();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['log','history','summary','setup'][i] === tab));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+  if (tab === 'summary') renderSummary();
+}
+
+function recalculate() {
+  const before = parseFloat(document.getElementById('pct-before').value);
+  const after = parseFloat(document.getElementById('pct-after').value);
+  if (isNaN(before) || isNaN(after) || after <= before) {
+    document.getElementById('calc-preview').classList.remove('visible');
+    return;
+  }
+  const delta = after - before;
+  const kwh = (BATTERY_KWH * delta / 100).toFixed(2);
+  const cost = (kwh * currentRate).toFixed(2);
+  document.getElementById('calc-delta').textContent = delta + '%';
+  document.getElementById('calc-kwh').textContent = kwh + ' kWh';
+  document.getElementById('calc-cost').textContent = cost + ' AED';
+  document.getElementById('calc-preview').classList.add('visible');
+}
+
+function recalcEdit() {
+  const before = parseFloat(document.getElementById('edit-before').value);
+  const after = parseFloat(document.getElementById('edit-after').value);
+  if (isNaN(before) || isNaN(after) || after <= before) return;
+  const kwh = (BATTERY_KWH * (after - before) / 100).toFixed(2);
+  const cost = (kwh * currentRate).toFixed(2);
+  document.getElementById('edit-calc-kwh').textContent = kwh + ' kWh';
+  document.getElementById('edit-calc-cost').textContent = cost + ' AED';
+}
+
+function saveSession() {
+  const before = parseFloat(document.getElementById('pct-before').value);
+  const after = parseFloat(document.getElementById('pct-after').value);
+  const date = document.getElementById('log-date').value;
+  const time = document.getElementById('log-time').value;
+  if (!date || isNaN(before) || isNaN(after) || after <= before) {
+    showToast('Fill in all fields correctly', 'error'); return;
+  }
+  const kwh = parseFloat((BATTERY_KWH * (after - before) / 100).toFixed(2));
+  const cost = parseFloat((kwh * currentRate).toFixed(2));
+  const session = {
+    id: Date.now().toString(),
+    date, time,
+    location: document.getElementById('log-location').value || 'Dubai Office',
+    before, after, kwh, rate: currentRate, cost,
+    notes: document.getElementById('log-notes').value,
+    synced: false
+  };
+  sessions.unshift(session);
+  saveSessions();
+  resetLogForm();
+  showToast('Session saved ✓', 'success');
+  if (sheetUrl) pushToSheet(session);
+}
+
+function resetLogForm() {
+  const now = new Date();
+  document.getElementById('log-date').value = now.toISOString().split('T')[0];
+  document.getElementById('log-time').value = now.toTimeString().slice(0,5);
+  ['pct-before','pct-after','log-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('calc-preview').classList.remove('visible');
+}
+
+function saveSessions() {
+  localStorage.setItem('ev_sessions', JSON.stringify(sessions));
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  document.getElementById('history-count').textContent = sessions.length + ' sessions';
+  if (!sessions.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚡</div><div class="empty-state-text">No sessions yet.<br>Log your first charge above.</div></div>`;
+    return;
+  }
+  list.innerHTML = sessions.map(s => `
+    <div class="log-entry">
+      <div class="log-entry-head">
+        <div>
+          <div class="log-entry-date">${formatDate(s.date)}</div>
+          <div class="log-entry-time">${s.time} · ${s.location}</div>
+        </div>
+        <div class="log-entry-cost">${s.cost.toFixed(2)} AED</div>
+      </div>
+      <div class="log-entry-meta">
+        <span class="badge badge-kwh">${s.kwh} kWh</span>
+        <span class="badge badge-pct">${s.before}% → ${s.after}%</span>
+        ${s.notes ? `<span class="badge" style="background:var(--surface2);color:var(--text2);">${s.notes}</span>` : ''}
+        ${s.synced ? `<span class="badge" style="background:rgba(0,229,160,0.1);color:var(--accent);">↑ synced</span>` : ''}
+      </div>
+      <div class="log-actions">
+        <button class="btn btn-ghost" onclick="openEdit('${s.id}')">✏️ Edit</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSummary() {
+  const total_kwh = sessions.reduce((a,s) => a + s.kwh, 0);
+  const total_cost = sessions.reduce((a,s) => a + s.cost, 0);
+  document.getElementById('sum-kwh').innerHTML = total_kwh.toFixed(1) + '<span class="stat-unit">kWh</span>';
+  document.getElementById('sum-cost').innerHTML = total_cost.toFixed(2) + '<span class="stat-unit">AED</span>';
+  document.getElementById('sum-sessions').textContent = sessions.length;
+  document.getElementById('sum-avg').innerHTML = (sessions.length ? (total_cost/sessions.length).toFixed(2) : 0) + '<span class="stat-unit">AED</span>';
+
+  const months = {};
+  sessions.forEach(s => {
+    const m = s.date.slice(0,7);
+    if (!months[m]) months[m] = { kwh: 0, cost: 0 };
+    months[m].kwh += s.kwh;
+    months[m].cost += s.cost;
+  });
+  const keys = Object.keys(months).sort().slice(-6);
+  const maxKwh = Math.max(...keys.map(k => months[k].kwh), 1);
+  const maxCost = Math.max(...keys.map(k => months[k].cost), 1);
+
+  document.getElementById('chart-kwh').innerHTML = keys.map(k => `
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh/maxKwh*100).toFixed(1)}%"></div></div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  document.getElementById('chart-cost').innerHTML = keys.map(k => `
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost/maxCost*100).toFixed(1)}%"></div></div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+}
+
+function openEdit(id) {
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('edit-id').value = s.id;
+  document.getElementById('edit-date').value = s.date;
+  document.getElementById('edit-time').value = s.time;
+  document.getElementById('edit-location').value = s.location;
+  document.getElementById('edit-before').value = s.before;
+  document.getElementById('edit-after').value = s.after;
+  document.getElementById('edit-notes').value = s.notes || '';
+  recalcEdit();
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const idx = sessions.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const before = parseFloat(document.getElementById('edit-before').value);
+  const after = parseFloat(document.getElementById('edit-after').value);
+  if (isNaN(before) || isNaN(after) || after <= before) { showToast('Invalid values', 'error'); return; }
+  const kwh = parseFloat((BATTERY_KWH * (after - before) / 100).toFixed(2));
+  const cost = parseFloat((kwh * currentRate).toFixed(2));
+  sessions[idx] = { ...sessions[idx], date: document.getElementById('edit-date').value, time: document.getElementById('edit-time').value, location: document.getElementById('edit-location').value, before, after, kwh, cost, notes: document.getElementById('edit-notes').value, synced: false };
+  saveSessions();
+  closeModal();
+  renderHistory();
+  renderSummary();
+  showToast('Session updated ✓', 'success');
+}
+
+function deleteSession() {
+  const id = document.getElementById('edit-id').value;
+  if (!confirm('Delete this session?')) return;
+  sessions = sessions.filter(s => s.id !== id);
+  saveSessions();
+  closeModal();
+  renderHistory();
+  renderSummary();
+  showToast('Session deleted', 'error');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+async function pushToSheet(session) {
+  if (!sheetUrl) return;
+  try {
+    await fetch(sheetUrl, {
+      method: 'POST',
+      body: JSON.stringify({ date: session.date, time: session.time, location: session.location, before: session.before, after: session.after, kwh: session.kwh, rate: session.rate, cost: session.cost, notes: session.notes }),
+      mode: 'no-cors'
+    });
+    const idx = sessions.findIndex(s => s.id === session.id);
+    if (idx > -1) sessions[idx].synced = true;
+    saveSessions();
+  } catch(e) { console.error('Sheet sync failed', e); }
+}
+
+async function syncToSheet() {
+  if (!sheetUrl) { showToast('Set up Google Sheet first', 'error'); return; }
+  showToast('Syncing to Google Sheet...', 'success');
+  try {
+    await fetch(sheetUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'sync', sessions }),
+      mode: 'no-cors'
+    });
+    sessions.forEach(s => s.synced = true);
+    saveSessions();
+    renderHistory();
+    showToast('All synced to Google Sheet ✓', 'success');
+  } catch(e) {
+    showToast('Sync failed. Check URL in Setup.', 'error');
+  }
+}
+
+function saveSheetUrl() {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) { showToast('Invalid Apps Script URL', 'error'); return; }
+  sheetUrl = url;
+  localStorage.setItem('ev_sheet_url', url);
+  document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
+  document.getElementById('sheet-status').className = 'sheet-status connected';
+  showToast('Sheet URL saved ✓', 'success');
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(APPS_SCRIPT).then(() => showToast('Script copied ✓', 'success'));
+}
+
+function openRateModal() { document.getElementById('rate-modal').classList.add('open'); }
+function closeRateModal() { document.getElementById('rate-modal').classList.remove('open'); }
+function setRate(r) {
+  currentRate = r;
+  localStorage.setItem('ev_rate', r);
+  document.getElementById('rate-display').textContent = r.toFixed(2);
+  document.getElementById('calc-rate-shown').textContent = r.toFixed(2) + ' AED/kWh';
+  document.getElementById('custom-rate').value = r;
+  closeRateModal();
+  showToast('Rate set to ' + r + ' AED/kWh', 'success');
+}
+function saveCustomRate() {
+  const v = parseFloat(document.getElementById('custom-rate').value);
+  if (isNaN(v) || v <= 0) { showToast('Invalid rate', 'error'); return; }
+  setRate(v);
+}
+
+function openLink(url) { window.open(url, '_blank'); }
+
+function formatDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function formatMonth(m) {
+  const dt = new Date(m + '-01');
+  return dt.toLocaleDateString('en-AE', { month: 'short', year: 'numeric' });
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+window.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('edit-modal')) closeModal();
+  if (e.target === document.getElementById('rate-modal')) closeRateModal();
+});
+
+init();
+</script>
+</body>
+</html>
