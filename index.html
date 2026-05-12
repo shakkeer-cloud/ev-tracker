@@ -244,7 +244,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="card-title">Monthly cost (AED)</div>
     <div id="chart-cost"></div>
   </div>
-  <button class="btn btn-secondary" onclick="syncToSheet()" style="margin-top:0;">↑ Sync unsynced to Google Sheet</button>
+  <button class="btn btn-secondary" onclick="fullResync()" style="margin-top:0;">↑ Sync to Google Sheet</button>
   <button class="btn btn-ghost" onclick="importFromSheet()" style="margin-top:8px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">↓ Import all from Google Sheet</button>
 </div>
 
@@ -471,6 +471,31 @@ function updateSummary(sheet) {
   }
 }`;
 
+function normalizeDate(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Has T (ISO string)
+  if (s.includes('T')) return s.split('T')[0];
+  // Google Sheets serial number (e.g. 46748)
+  if (/^\d+$/.test(s)) {
+    const d = new Date((parseFloat(s) - 25569) * 86400000);
+    return d.toISOString().split('T')[0];
+  }
+  // Any other date string (e.g. "Tue May 06 2026 00:00:00")
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+day;
+    }
+  } catch(e) {}
+  return s;
+}
+
 function init() {
   const now = new Date();
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
@@ -609,14 +634,7 @@ function renderSummary() {
 function openEdit(id) {
   const s=sessions.find(x=>x.id===id); if(!s) return;
   document.getElementById('edit-id').value=s.id;
-  // Normalize date - strip any time component, handle various formats
-  let dateVal = s.date ? String(s.date).split('T')[0].trim() : '';
-  // Handle Google Sheets date serial numbers
-  if(dateVal && !dateVal.includes('-') && !isNaN(dateVal)) {
-    const jsDate = new Date((parseFloat(dateVal) - 25569) * 86400000);
-    dateVal = jsDate.toISOString().split('T')[0];
-  }
-  document.getElementById('edit-date').value = dateVal;
+  document.getElementById('edit-date').value = normalizeDate(s.date);
   // Normalize time - ensure HH:MM format
   let timeVal = s.time ? String(s.time).trim() : '';
   if(timeVal && timeVal.length === 4 && !timeVal.includes(':')) timeVal = timeVal.slice(0,2)+':'+timeVal.slice(2);
@@ -696,8 +714,8 @@ async function syncToSheet() {
 }
 
 async function fullResync(silent=false) {
-  if(!sheetUrl) return;
-  if(!silent) showToast('Updating Sheet...','success');
+  if(!sheetUrl){showToast('Set up Google Sheet first in Setup tab','error');return;}
+  if(!silent) showToast('Syncing to Sheet...','success');
   try {
     const payload = {
       action:'resync',
@@ -705,7 +723,7 @@ async function fullResync(silent=false) {
     };
     await callSheet(payload);
     sessions.forEach(s=>s.synced=true); saveSessions(); renderHistory();
-    showToast('Sheet updated ✓','success');
+    showToast('Sheet synced ✓ ('+sessions.length+' sessions)','success');
   } catch(e){showToast('Sync failed - check Setup','error');console.error(e);}
 }
 
@@ -722,12 +740,7 @@ async function importFromSheet() {
     if(!imported.length){showToast('No data found in Sheet','error');return;}
     // Merge: keep local sessions not in sheet, add all sheet sessions
     const newSessions = imported.map((s,i) => {
-      // Normalize date from sheet
-      let d = String(s.date||'').split('T')[0].trim();
-      if(d && !d.includes('-') && !isNaN(d)) {
-        const jsDate = new Date((parseFloat(d)-25569)*86400000);
-        d = jsDate.toISOString().split('T')[0];
-      }
+      let d = normalizeDate(s.date);
       // Normalize time
       let t = String(s.time||'').trim().slice(0,5);
       if(!t || !t.includes(':')) t = '00:00';
@@ -794,7 +807,10 @@ function saveCustomRate(){
   if(isNaN(v)||v<=0){showToast('Invalid rate','error');return;} setRate(v);
 }
 function openLink(url){window.open(url,'_blank');}
-function formatDate(d){return new Date(d+'T00:00:00').toLocaleDateString('en-AE',{day:'numeric',month:'short',year:'numeric'});}
+function formatDate(d){
+  const nd = normalizeDate(d);
+  return new Date(nd+'T00:00:00').toLocaleDateString('en-AE',{day:'numeric',month:'short',year:'numeric'});
+}
 function formatMonth(m){return new Date(m+'-01').toLocaleDateString('en-AE',{month:'short',year:'numeric'});}
 function showToast(msg,type='success'){
   const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type;
