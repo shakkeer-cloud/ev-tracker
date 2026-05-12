@@ -380,44 +380,71 @@ let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
-const APPS_SCRIPT = `function doPost(e) { return handleRequest(e, e.postData ? JSON.parse(e.postData.contents) : e.parameter); }
-function doGet(e) { return handleRequest(e, e.parameter); }
-
-function handleRequest(e, p) {
+const APPS_SCRIPT = `function doPost(e) {
   var output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet();
-    var log = sheet.getSheetByName("Log") || sheet.insertSheet("Log");
-    if (log.getLastRow() === 0) {
-      log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
-      log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-    }
-    if (p.action === "add") {
-      log.appendRow([p.date,p.time,p.location,Number(p.before),Number(p.after),Number(p.kwh),Number(p.rate),Number(p.cost),p.notes||""]);
-      updateSummary(sheet);
-      output.setContent(JSON.stringify({status:"ok"}));
-    } else if (p.action === "resync") {
-      var data = JSON.parse(p.data);
-      log.clearContents();
-      log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
-      log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-      for (var i=0;i<data.length;i++){var s=data[i];log.appendRow([s.date,s.time,s.location,Number(s.before),Number(s.after),Number(s.kwh),Number(s.rate),Number(s.cost),s.notes||""]);}
-      updateSummary(sheet);
-      output.setContent(JSON.stringify({status:"ok",count:data.length}));
-    } else if (p.action === "read") {
-      var rows = log.getDataRange().getValues();
-      var result = [];
-      for (var i=1;i<rows.length;i++){
-        var r=rows[i]; if(!r[0]) continue;
-        result.push({date:String(r[0]),time:String(r[1]),location:String(r[2]),before:Number(r[3]),after:Number(r[4]),kwh:Number(r[5]),rate:Number(r[6]),cost:Number(r[7]),notes:String(r[8]||"")});
-      }
-      output.setContent(JSON.stringify({status:"ok",sessions:result}));
-    } else {
-      output.setContent(JSON.stringify({status:"ok",message:"connected"}));
-    }
-  } catch(err) { output.setContent(JSON.stringify({status:"error",message:err.toString()})); }
+    var p = JSON.parse(e.postData.contents);
+    var result = handleAction(p);
+    output.setContent(JSON.stringify(result));
+  } catch(err) {
+    output.setContent(JSON.stringify({status:'error',message:err.toString()}));
+  }
   return output;
+}
+
+function doGet(e) {
+  var output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+  try {
+    var p = e.parameter;
+    var result = handleAction(p);
+    output.setContent(JSON.stringify(result));
+  } catch(err) {
+    output.setContent(JSON.stringify({status:'error',message:err.toString()}));
+  }
+  return output;
+}
+
+function handleAction(p) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var log = sheet.getSheetByName("Log") || sheet.insertSheet("Log");
+
+  if (log.getLastRow() === 0) {
+    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
+    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
+  }
+
+  if (p.action === "add") {
+    log.appendRow([p.date,p.time,p.location,Number(p.before),Number(p.after),Number(p.kwh),Number(p.rate),Number(p.cost),p.notes||""]);
+    updateSummary(sheet);
+    return {status:"ok",action:"add"};
+  }
+
+  if (p.action === "resync") {
+    var data = p.sessions || [];
+    log.clearContents();
+    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
+    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
+    for (var i=0;i<data.length;i++) {
+      var s=data[i];
+      log.appendRow([s.date,s.time,s.location,Number(s.before),Number(s.after),Number(s.kwh),Number(s.rate),Number(s.cost),s.notes||""]);
+    }
+    updateSummary(sheet);
+    return {status:"ok",action:"resync",count:data.length};
+  }
+
+  if (p.action === "read") {
+    var rows = log.getDataRange().getValues();
+    var result = [];
+    for (var i=1;i<rows.length;i++) {
+      var r=rows[i]; if(!r[0]) continue;
+      result.push({date:String(r[0]),time:String(r[1]),location:String(r[2]),before:Number(r[3]),after:Number(r[4]),kwh:Number(r[5]),rate:Number(r[6]),cost:Number(r[7]),notes:String(r[8]||"")});
+    }
+    return {status:"ok",sessions:result};
+  }
+
+  return {status:"ok",message:"connected"};
 }
 
 function updateSummary(sheet) {
@@ -428,9 +455,17 @@ function updateSummary(sheet) {
   sum.getRange(1,1,1,5).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
   var rows = log.getDataRange().getValues();
   var months = {};
-  for (var i=1;i<rows.length;i++){var r=rows[i];if(!r[0])continue;var m=String(r[0]).substring(0,7);if(!months[m])months[m]={count:0,kwh:0,cost:0};months[m].count++;months[m].kwh+=parseFloat(r[5])||0;months[m].cost+=parseFloat(r[7])||0;}
+  for (var i=1;i<rows.length;i++){
+    var r=rows[i]; if(!r[0]) continue;
+    var m=String(r[0]).substring(0,7);
+    if(!months[m]) months[m]={count:0,kwh:0,cost:0};
+    months[m].count++; months[m].kwh+=parseFloat(r[5])||0; months[m].cost+=parseFloat(r[7])||0;
+  }
   var keys=Object.keys(months).sort();
-  for(var k=0;k<keys.length;k++){var mo=months[keys[k]];sum.appendRow([keys[k],mo.count,mo.kwh.toFixed(2),mo.cost.toFixed(2),(mo.cost/mo.count).toFixed(2)]);}
+  for(var k=0;k<keys.length;k++){
+    var mo=months[keys[k]];
+    sum.appendRow([keys[k],mo.count,mo.kwh.toFixed(2),mo.cost.toFixed(2),(mo.cost/mo.count).toFixed(2)]);
+  }
 }`;
 
 function init() {
@@ -619,28 +654,19 @@ function deleteSession() {
 }
 function closeModal(){document.getElementById('edit-modal').classList.remove('open');}
 
-function sendToSheet(params) {
-  return new Promise((resolve) => {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = sheetUrl;
-    form.target = 'sheet-iframe';
-    form.style.display = 'none';
-    Object.keys(params).forEach(k => {
-      const inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = k; inp.value = params[k];
-      form.appendChild(inp);
-    });
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => { document.body.removeChild(form); resolve(); }, 1500);
+// Core fetch to Apps Script - sends JSON body, Apps Script reads via postData
+async function callSheet(payload) {
+  const res = await fetch(sheetUrl, {
+    method: 'POST',
+    body: JSON.stringify(payload)
   });
+  return res.json();
 }
 
 async function pushToSheet(s) {
   if(!sheetUrl) return;
   try {
-    await sendToSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
+    await callSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
     const idx=sessions.findIndex(x=>x.id===s.id);
     if(idx>-1){sessions[idx].synced=true;saveSessions();}
   } catch(e){console.error('push failed',e);}
@@ -651,24 +677,31 @@ async function syncToSheet() {
   const unsynced = sessions.filter(s=>!s.synced);
   if(!unsynced.length){showToast('All sessions already synced ✓','success');return;}
   showToast('Syncing '+unsynced.length+' sessions...','success');
-  for(let i=0;i<unsynced.length;i++){
-    const s=unsynced[i];
-    await sendToSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
-    const idx=sessions.findIndex(x=>x.id===s.id);
-    if(idx>-1) sessions[idx].synced=true;
-  }
-  saveSessions(); renderHistory();
-  showToast('Synced '+unsynced.length+' sessions ✓','success');
+  try {
+    for(let i=0;i<unsynced.length;i++){
+      const s=unsynced[i];
+      await callSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
+      const idx=sessions.findIndex(x=>x.id===s.id);
+      if(idx>-1) sessions[idx].synced=true;
+      await new Promise(r=>setTimeout(r,300));
+    }
+    saveSessions(); renderHistory();
+    showToast('Synced '+unsynced.length+' sessions ✓','success');
+  } catch(e){showToast('Sync failed - check Setup','error');console.error(e);}
 }
 
 async function fullResync(silent=false) {
   if(!sheetUrl) return;
-  if(!silent) showToast('Resyncing all to Sheet...','success');
-  const data=JSON.stringify(sessions.map(s=>({date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''})));
-  await sendToSheet({action:'resync',data});
-  sessions.forEach(s=>s.synced=true); saveSessions(); renderHistory();
-  if(!silent) showToast('Sheet updated ✓','success');
-  else showToast('Sheet synced ✓','success');
+  if(!silent) showToast('Updating Sheet...','success');
+  try {
+    const payload = {
+      action:'resync',
+      sessions: sessions.map(s=>({date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''}))
+    };
+    await callSheet(payload);
+    sessions.forEach(s=>s.synced=true); saveSessions(); renderHistory();
+    showToast('Sheet updated ✓','success');
+  } catch(e){showToast('Sync failed - check Setup','error');console.error(e);}
 }
 
 
