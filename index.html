@@ -340,10 +340,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div class="form-group">
       <label class="form-label">Tariff rate (AED/kWh)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:4px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:4px;">
         <button class="rate-opt-btn" onclick="setEditRate(0.23)" id="erate-023">0.23</button>
         <button class="rate-opt-btn" onclick="setEditRate(0.28)" id="erate-028">0.28</button>
         <button class="rate-opt-btn" onclick="setEditRate(0.38)" id="erate-038">0.38</button>
+        <button class="rate-opt-btn" onclick="setEditRate(0.399)" id="erate-0399" style="font-size:11px;">0.399</button>
       </div>
       <input type="number" class="form-input" id="edit-rate" step="0.01" min="0" placeholder="Custom rate" style="margin-top:6px;" oninput="recalcEdit()">
     </div>
@@ -383,7 +384,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const BATTERY_KWH = 27.28;
 let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
-let sessions = JSON.parse(localStorage.getItem('ev_sessions') || '[]');
+let sessions = []; // always loaded from Sheet
 let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
@@ -523,7 +524,7 @@ async function init() {
     document.getElementById('sheet-url').value = sheetUrl;
     document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
     document.getElementById('sheet-status').className = 'sheet-status connected';
-    // Auto-load data from sheet on startup
+    // Sheet is source of truth - always fetch on load
     await loadFromSheet();
   } else {
     renderHistory(); renderSummary();
@@ -538,7 +539,8 @@ async function loadFromSheet() {
     const url = sheetUrl + '?action=read&t=' + Date.now();
     const res = await fetch(url);
     const data = await res.json();
-    if(data.status === 'ok' && data.sessions && data.sessions.length > 0) {
+    if(data.status === 'ok' && Array.isArray(data.sessions)) {
+      if(data.sessions.length === 0) { sessions=[]; saveSessions(); hideLoading(); renderHistory(); renderSummary(); return; }
       const imported = data.sessions.map((s,i) => {
         let d = normalizeDate(s.date);
         let t = String(s.time||'').trim().slice(0,5);
@@ -554,7 +556,7 @@ async function loadFromSheet() {
       });
       imported.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
       sessions = imported;
-      saveSessions();
+      // no local save - sheet is source of truth
     }
   } catch(e) { console.error('Load from sheet failed', e); }
   hideLoading();
@@ -566,6 +568,17 @@ function setPct(key, val) {
   pctVals[key] = val;
   const ids = { before:'disp-before', after:'disp-after', 'edit-before':'edit-disp-before', 'edit-after':'edit-disp-after' };
   document.getElementById(ids[key]).textContent = val;
+  // Auto-bump: after must always be > before
+  if (key==='before' && pctVals['after'] <= val) {
+    const bumped = Math.min(100, val + 1);
+    pctVals['after'] = bumped;
+    document.getElementById('disp-after').textContent = bumped;
+  }
+  if (key==='edit-before' && pctVals['edit-after'] <= val) {
+    const bumped = Math.min(100, val + 1);
+    pctVals['edit-after'] = bumped;
+    document.getElementById('edit-disp-after').textContent = bumped;
+  }
   if (key==='before'||key==='after') recalculate();
   if (key==='edit-before'||key==='edit-after') recalcEdit();
 }
@@ -610,7 +623,7 @@ function setEditRate(r) {
   const el = document.getElementById('edit-rate');
   if(el) el.value = r;
   document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
-  const map = {0.23:'erate-023', 0.28:'erate-028', 0.38:'erate-038'};
+  const map = {0.23:'erate-023', 0.28:'erate-028', 0.38:'erate-038', 0.399:'erate-0399'};
   const btn = document.getElementById(map[r]);
   if(btn) btn.classList.add('active');
   recalcEdit();
@@ -630,8 +643,8 @@ async function saveSession() {
   if (!date||a<=b) { showToast('Set valid before & after %', 'error'); return; }
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
   const cost=parseFloat((kwh*currentRate).toFixed(2));
-  const s={id:Date.now().toString(),date,time:document.getElementById('log-time').value,location:document.getElementById('log-location').value||'Dubai Office',before:b,after:a,kwh,rate:currentRate,cost,notes:document.getElementById('log-notes').value,synced:false};
-  sessions.unshift(s); saveSessions(); resetLogForm();
+  const s={id:Date.now().toString(),date:normalizeDate(date),time:document.getElementById('log-time').value,location:document.getElementById('log-location').value||'Dubai Office',before:b,after:a,kwh,rate:currentRate,cost,notes:document.getElementById('log-notes').value,synced:false};
+  sessions.unshift(s); resetLogForm();
   showToast('Session saved ✓', 'success');
   if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
   else { renderHistory(); renderSummary(); }
@@ -644,12 +657,16 @@ function resetLogForm() {
   setPct('before',0); setPct('after',0);
   document.getElementById('calc-preview').classList.remove('visible');
 }
-function saveSessions(){localStorage.setItem('ev_sessions',JSON.stringify(sessions));}
+function saveSessions(){ /* no-op: sheet is source of truth */ }
 
 function renderHistory() {
   const list=document.getElementById('history-list');
   document.getElementById('history-count').textContent=sessions.length+' sessions';
-  if (!sessions.length) { list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">⚡</div><div class="empty-state-text">No sessions yet.<br>Log your first charge above.</div></div>`; return; }
+  if (!sessions.length) {
+    const msg = sheetUrl ? 'No sessions in Sheet yet.<br>Log your first charge above.' : '⚠️ No Sheet connected.<br>Go to Setup tab and add your<br>Google Sheet URL first.';
+    list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">${sheetUrl?'⚡':'🔗'}</div><div class="empty-state-text">${msg}</div></div>`;
+    return;
+  }
   list.innerHTML=sessions.map(s=>`
     <div class="log-entry">
       <div class="log-entry-head">
@@ -673,7 +690,12 @@ function renderSummary() {
   document.getElementById('sum-sessions').textContent=sessions.length;
   document.getElementById('sum-avg').innerHTML=(sessions.length?(tc/sessions.length).toFixed(2):'0')+'<span class="stat-unit">AED</span>';
   const months={};
-  sessions.forEach(s=>{const m=s.date.slice(0,7);if(!months[m])months[m]={kwh:0,cost:0};months[m].kwh+=s.kwh;months[m].cost+=s.cost;});
+  sessions.forEach(s=>{
+    const nd=normalizeDate(s.date);
+    const m=nd.slice(0,7);
+    if(!months[m])months[m]={kwh:0,cost:0};
+    months[m].kwh+=s.kwh;months[m].cost+=s.cost;
+  });
   const keys=Object.keys(months).sort().slice(-6);
   const mxK=Math.max(...keys.map(k=>months[k].kwh),1), mxC=Math.max(...keys.map(k=>months[k].cost),1);
   document.getElementById('chart-kwh').innerHTML=keys.length?keys.map(k=>`<div class="chart-bar-group"><div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh/mxK*100).toFixed(1)}%"></div></div></div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
@@ -697,7 +719,7 @@ function openEdit(id) {
   document.getElementById('edit-rate').value = sessionRate;
   // Highlight matching preset button
   document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
-  const presets = [0.23, 0.28, 0.38];
+  const presets = [0.23, 0.28, 0.38, 0.399];
   if(presets.includes(sessionRate)) setEditRate(sessionRate);
   recalcEdit();
   document.getElementById('edit-modal').classList.add('open');
@@ -710,8 +732,8 @@ async function saveEdit() {
   const editedRate = parseFloat(document.getElementById('edit-rate').value) || currentRate;
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
   const cost=parseFloat((kwh*editedRate).toFixed(2));
-  sessions[idx]={...sessions[idx],date:document.getElementById('edit-date').value,time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,rate:editedRate,cost,notes:document.getElementById('edit-notes').value,synced:false};
-  saveSessions(); closeModal();
+  sessions[idx]={...sessions[idx],date:normalizeDate(document.getElementById('edit-date').value),time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,rate:editedRate,cost,notes:document.getElementById('edit-notes').value,synced:true};
+  closeModal();
   showToast('Session updated ✓','success');
   if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
   else { renderHistory(); renderSummary(); }
@@ -720,7 +742,7 @@ async function deleteSession() {
   const id=document.getElementById('edit-id').value;
   if(!confirm('Delete this session?')) return;
   sessions=sessions.filter(s=>s.id!==id);
-  saveSessions(); closeModal();
+  closeModal();
   showToast('Session deleted','error');
   if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
   else { renderHistory(); renderSummary(); }
@@ -862,7 +884,15 @@ function formatDate(d){
   const nd = normalizeDate(d);
   return new Date(nd+'T00:00:00').toLocaleDateString('en-AE',{day:'numeric',month:'short',year:'numeric'});
 }
-function formatMonth(m){return new Date(m+'-01').toLocaleDateString('en-AE',{month:'short',year:'numeric'});}
+function formatMonth(m){
+  // m could be "2026-05" or "Wed May 06 2026..."
+  let clean = m;
+  if(!clean.match(/^\d{4}-\d{2}$/)) {
+    const d = new Date(clean);
+    if(!isNaN(d)) clean = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  }
+  return new Date(clean+'-01').toLocaleDateString('en-AE',{month:'short',year:'numeric'});
+}
 function showToast(msg,type='success'){
   const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type;
   setTimeout(()=>t.classList.remove('show'),2800);
