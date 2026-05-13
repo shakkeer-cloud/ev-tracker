@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -139,7 +142,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="nav-icon">⚡</div>
     <div>
       <div class="nav-title">EV Charge Tracker</div>
-      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh</div>
+      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh · <span id="app-ver" style="color:var(--text3);">v1.0</span></div>
     </div>
   </div>
   <div class="rate-pill" onclick="openRateModal()">Rate: <b id="rate-display">0.399</b> AED</div>
@@ -511,7 +514,10 @@ function hideLoading() {
   document.getElementById('loading-overlay').style.display='none';
 }
 
+const APP_VERSION = '1.6'; // update this each release
+
 async function init() {
+  document.getElementById('app-ver').textContent = 'v' + APP_VERSION;
   const now = new Date();
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
