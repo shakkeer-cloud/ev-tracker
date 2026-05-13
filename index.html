@@ -129,6 +129,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .toast.error{color:var(--danger);border-color:rgba(224,82,82,0.3);}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -141,7 +142,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="nav-sub">Deepal S05 REEV · 27.28 kWh</div>
     </div>
   </div>
-  <div class="rate-pill" onclick="openRateModal()">Rate: <b id="rate-display">0.28</b> AED</div>
+  <div class="rate-pill" onclick="openRateModal()">Rate: <b id="rate-display">0.399</b> AED</div>
 </nav>
 
 <div class="tabs">
@@ -244,8 +245,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="card-title">Monthly cost (AED)</div>
     <div id="chart-cost"></div>
   </div>
-  <button class="btn btn-secondary" onclick="fullResync()" style="margin-top:0;">↑ Sync to Google Sheet</button>
-  <button class="btn btn-ghost" onclick="importFromSheet()" style="margin-top:8px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">↓ Import all from Google Sheet</button>
+  <button class="btn btn-secondary" onclick="loadFromSheet()" style="margin-top:0;">↓ Refresh from Google Sheet</button>
+  <button class="btn btn-ghost" onclick="fullResync()" style="margin-top:8px;font-size:13px;">↑ Force sync to Google Sheet</button>
 </div>
 
 <!-- SETUP -->
@@ -360,7 +361,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Dubai commercial tariff — select your slab.</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
       <button class="btn btn-ghost" onclick="setRate(0.23)">0–1,000 kWh/month → <strong>0.23 AED/kWh</strong></button>
-      <button class="btn btn-ghost" onclick="setRate(0.28)" style="border-color:rgba(0,229,160,0.4);color:var(--accent);">1,001–3,000 kWh/month → <strong>0.28 AED/kWh</strong> ✓</button>
+      <button class="btn btn-ghost" onclick="setRate(0.28)" >1,001–3,000 kWh/month → <strong>0.28 AED/kWh</strong></button>
       <button class="btn btn-ghost" onclick="setRate(0.38)">Above 3,000 kWh/month → <strong>0.38 AED/kWh</strong></button>
     </div>
     <div class="form-group">
@@ -373,11 +374,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(10,14,20,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <div id="loading-text" style="font-size:14px;color:var(--text2);font-weight:500;">Syncing...</div>
+</div>
 <iframe name="sheet-iframe" style="display:none;"></iframe>
 
 <script>
 const BATTERY_KWH = 27.28;
-let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.28');
+let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = JSON.parse(localStorage.getItem('ev_sessions') || '[]');
 let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
@@ -496,12 +501,21 @@ function normalizeDate(val) {
   return s;
 }
 
-function init() {
+function showLoading(msg='Syncing...') {
+  const o=document.getElementById('loading-overlay');
+  document.getElementById('loading-text').textContent=msg;
+  o.style.display='flex';
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+async function init() {
   const now = new Date();
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
-  document.getElementById('rate-display').textContent = currentRate.toFixed(2);
-  document.getElementById('calc-rate-shown').textContent = currentRate.toFixed(2) + ' AED/kWh';
+  document.getElementById('rate-display').textContent = currentRate.toFixed(3);
+  document.getElementById('calc-rate-shown').textContent = currentRate.toFixed(3) + ' AED/kWh';
   document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
   const scriptBox = document.getElementById('script-select-all');
   if(scriptBox) scriptBox.value = APPS_SCRIPT;
@@ -509,7 +523,41 @@ function init() {
     document.getElementById('sheet-url').value = sheetUrl;
     document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
     document.getElementById('sheet-status').className = 'sheet-status connected';
+    // Auto-load data from sheet on startup
+    await loadFromSheet();
+  } else {
+    renderHistory(); renderSummary();
   }
+}
+
+// Always pull fresh data from sheet
+async function loadFromSheet() {
+  if(!sheetUrl) return;
+  showLoading('Loading data...');
+  try {
+    const url = sheetUrl + '?action=read&t=' + Date.now();
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.status === 'ok' && data.sessions && data.sessions.length > 0) {
+      const imported = data.sessions.map((s,i) => {
+        let d = normalizeDate(s.date);
+        let t = String(s.time||'').trim().slice(0,5);
+        if(!t||!t.includes(':')) t='00:00';
+        return {
+          id: 'sheet_'+i+'_'+d.replace(/-/g,''),
+          date:d, time:t,
+          location: s.location||'Dubai Office',
+          before: Number(s.before)||0, after: Number(s.after)||0,
+          kwh: Number(s.kwh)||0, rate: Number(s.rate)||currentRate,
+          cost: Number(s.cost)||0, notes: s.notes||'', synced:true
+        };
+      });
+      imported.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+      sessions = imported;
+      saveSessions();
+    }
+  } catch(e) { console.error('Load from sheet failed', e); }
+  hideLoading();
   renderHistory(); renderSummary();
 }
 
@@ -576,7 +624,7 @@ function switchTab(tab) {
   if (tab==='summary') renderSummary();
 }
 
-function saveSession() {
+async function saveSession() {
   const b=pctVals['before'], a=pctVals['after'];
   const date=document.getElementById('log-date').value;
   if (!date||a<=b) { showToast('Set valid before & after %', 'error'); return; }
@@ -585,7 +633,8 @@ function saveSession() {
   const s={id:Date.now().toString(),date,time:document.getElementById('log-time').value,location:document.getElementById('log-location').value||'Dubai Office',before:b,after:a,kwh,rate:currentRate,cost,notes:document.getElementById('log-notes').value,synced:false};
   sessions.unshift(s); saveSessions(); resetLogForm();
   showToast('Session saved ✓', 'success');
-  if (sheetUrl) pushToSheet(s);
+  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
+  else { renderHistory(); renderSummary(); }
 }
 function resetLogForm() {
   const now=new Date();
@@ -653,7 +702,7 @@ function openEdit(id) {
   recalcEdit();
   document.getElementById('edit-modal').classList.add('open');
 }
-function saveEdit() {
+async function saveEdit() {
   const id=document.getElementById('edit-id').value;
   const idx=sessions.findIndex(x=>x.id===id); if(idx===-1) return;
   const b=pctVals['edit-before'], a=pctVals['edit-after'];
@@ -662,18 +711,19 @@ function saveEdit() {
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
   const cost=parseFloat((kwh*editedRate).toFixed(2));
   sessions[idx]={...sessions[idx],date:document.getElementById('edit-date').value,time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,rate:editedRate,cost,notes:document.getElementById('edit-notes').value,synced:false};
-  saveSessions(); closeModal(); renderHistory(); renderSummary();
+  saveSessions(); closeModal();
   showToast('Session updated ✓','success');
-  // Push full resync to sheet so edits overwrite old rows
-  if(sheetUrl) fullResync();
+  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
+  else { renderHistory(); renderSummary(); }
 }
-function deleteSession() {
+async function deleteSession() {
   const id=document.getElementById('edit-id').value;
   if(!confirm('Delete this session?')) return;
   sessions=sessions.filter(s=>s.id!==id);
-  saveSessions(); closeModal(); renderHistory(); renderSummary();
+  saveSessions(); closeModal();
   showToast('Session deleted','error');
-  if(sheetUrl) fullResync(true);
+  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
+  else { renderHistory(); renderSummary(); }
 }
 function closeModal(){document.getElementById('edit-modal').classList.remove('open');}
 
@@ -797,10 +847,11 @@ function openRateModal(){document.getElementById('rate-modal').classList.add('op
 function closeRateModal(){document.getElementById('rate-modal').classList.remove('open');}
 function setRate(r){
   currentRate=r; localStorage.setItem('ev_rate',r);
-  document.getElementById('rate-display').textContent=r.toFixed(2);
-  document.getElementById('calc-rate-shown').textContent=r.toFixed(2)+' AED/kWh';
+  const d = r===Math.floor(r*100)/100 ? r.toFixed(2) : r.toFixed(3);
+  document.getElementById('rate-display').textContent=d;
+  document.getElementById('calc-rate-shown').textContent=d+' AED/kWh';
   document.getElementById('custom-rate').value=r;
-  closeRateModal(); showToast('Rate set to '+r+' AED/kWh','success');
+  closeRateModal(); showToast('Rate set to '+d+' AED/kWh','success');
 }
 function saveCustomRate(){
   const v=parseFloat(document.getElementById('custom-rate').value);
