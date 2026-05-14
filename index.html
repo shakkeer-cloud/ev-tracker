@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,8 +33,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .form-input:focus{border-color:rgba(0,229,160,0.5);}
 .form-input::placeholder{color:var(--text3);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* PCT STEPPER */
 .pct-section-label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
 .pct-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .pct-box{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);padding:14px 10px;text-align:center;}
@@ -49,10 +45,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pct-sign{font-size:13px;color:var(--text2);margin-bottom:12px;}
 .pct-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
 .pct-btn{padding:9px 0;border-radius:7px;font-size:18px;font-weight:600;border:1px solid var(--border2);background:var(--surface3);color:var(--text);cursor:pointer;user-select:none;-webkit-user-select:none;transition:background 0.1s;touch-action:manipulation;}
-.pct-btn:active,.pct-btn.pressing{background:var(--border2);}
+.pct-btn:active{background:var(--border2);}
 .pct-btn.zero{font-size:11px;font-weight:500;color:var(--text3);}
-
-/* CALC */
 .calc-preview{background:var(--accent-dim2);border:1px solid rgba(0,229,160,0.2);border-radius:var(--rs);padding:13px;margin-bottom:12px;display:none;}
 .calc-preview.visible{display:block;}
 .calc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
@@ -60,24 +54,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .calc-key{font-size:12px;color:var(--text2);}
 .calc-val{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
 .calc-total{color:var(--accent);font-size:16px;}
-
-/* BUTTONS */
 .btn{width:100%;padding:14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;letter-spacing:-0.2px;}
 .btn-primary{background:var(--accent);color:#0a0e14;}
-.btn-primary:active{transform:scale(0.98);background:#00ffb3;}
+.btn-primary:active{transform:scale(0.98);}
 .btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);margin-top:8px;}
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:13px;padding:10px;}
 .btn-danger{background:rgba(224,82,82,0.1);color:var(--danger);border:1px solid rgba(224,82,82,0.25);font-size:13px;padding:11px;}
-
-/* STATS */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px;}
 .stat-label{font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace;}
 .stat-value{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px;}
 .stat-unit{font-size:11px;color:var(--text2);font-weight:400;margin-left:2px;}
 .stat-accent .stat-value{color:var(--accent);}
-
-/* HISTORY */
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .section-title{font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;}
 .log-entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
@@ -89,38 +77,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .badge{font-size:11px;padding:4px 9px;border-radius:100px;font-family:'DM Mono',monospace;font-weight:500;}
 .badge-kwh{background:rgba(74,144,217,0.15);color:var(--info);}
 .badge-pct{background:rgba(245,166,35,0.15);color:var(--warn);}
-.badge-sync{background:rgba(0,229,160,0.1);color:var(--accent);}
 .badge-note{background:var(--surface2);color:var(--text2);}
 .empty-state{text-align:center;padding:48px 20px;color:var(--text3);}
 .empty-state-icon{font-size:36px;margin-bottom:10px;}
 .empty-state-text{font-size:13px;line-height:1.7;}
-
-/* CHARTS */
 .card-title{font-size:12px;color:var(--text3);margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;}
 .chart-bar-group{margin-bottom:14px;}
 .chart-month{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;}
 .chart-bar-track{height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;}
 .chart-bar-fill{height:100%;border-radius:100px;background:var(--accent);transition:width 0.5s ease;}
 .chart-bar-fill.cost{background:var(--warn);}
-
-/* SETUP */
 .setup-step{display:flex;gap:14px;margin-bottom:20px;}
 .setup-num{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);color:var(--accent);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .setup-body{flex:1;}
 .setup-title{font-size:14px;font-weight:600;margin-bottom:4px;}
 .setup-text{font-size:13px;color:var(--text2);line-height:1.6;}
-.code-block{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);margin-top:10px;white-space:pre-wrap;line-height:1.6;max-height:150px;overflow-y:auto;}
-.copy-btn{margin-top:8px;padding:8px 14px;font-size:12px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;}
 .url-input-group{display:flex;gap:6px;margin-top:10px;}
 .url-input-group .form-input{flex:1;font-size:12px;}
 .url-save-btn{padding:11px 14px;background:var(--accent);color:#0a0e14;border:none;border-radius:var(--rs);font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;white-space:nowrap;}
-.sheet-status{margin-top:10px;padding:10px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;display:none;}
-.sheet-status.connected{display:block;background:rgba(0,229,160,0.1);color:var(--accent);border:1px solid rgba(0,229,160,0.2);}
-.sheet-status.error{display:block;background:rgba(224,82,82,0.1);color:var(--danger);border:1px solid rgba(224,82,82,0.2);}
-.rate-opt-btn{padding:9px 0;border-radius:var(--rs);font-size:13px;font-weight:600;font-family:'DM Mono',monospace;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all 0.15s;}
-.rate-opt-btn.active{background:var(--accent-dim);border-color:rgba(0,229,160,0.4);color:var(--accent);}
-
-/* MODAL */
+.cred-status{margin-top:10px;padding:10px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;display:none;}
+.cred-status.connected{display:block;background:rgba(0,229,160,0.1);color:var(--accent);border:1px solid rgba(0,229,160,0.2);}
+.cred-status.error{display:block;background:rgba(224,82,82,0.1);color:var(--danger);border:1px solid rgba(224,82,82,0.2);}
 .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;}
@@ -130,9 +107,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast.success{color:var(--accent);border-color:rgba(0,229,160,0.3);}
 .toast.error{color:var(--danger);border-color:rgba(224,82,82,0.3);}
+.rate-opt-btn{padding:9px 0;border-radius:var(--rs);font-size:12px;font-weight:600;font-family:'DM Mono',monospace;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.rate-opt-btn.active{background:var(--accent-dim);border-color:rgba(0,229,160,0.4);color:var(--accent);}
+@keyframes spin{to{transform:rotate(360deg);}}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -142,7 +121,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="nav-icon">⚡</div>
     <div>
       <div class="nav-title">EV Charge Tracker</div>
-      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh · <span id="app-ver" style="color:var(--text3);">v1.0</span></div>
+      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh · <span id="app-ver" style="color:var(--text3);">v2.0</span></div>
     </div>
   </div>
   <div class="rate-pill" onclick="openRateModal()">Rate: <b id="rate-display">0.399</b> AED</div>
@@ -179,9 +158,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="pct-display" id="disp-before">0</div>
         <div class="pct-sign">%</div>
         <div class="pct-btns">
-          <button class="pct-btn" id="bb-minus" ontouchstart="startHold(event,'before',-1)" ontouchend="stopHold()" onmousedown="startHold(event,'before',-1)" onmouseup="stopHold()" onmouseleave="stopHold()">−</button>
+          <button class="pct-btn" ontouchstart="startHold(event,'before',-1)" ontouchend="stopHold()" onmousedown="startHold(event,'before',-1)" onmouseup="stopHold()" onmouseleave="stopHold()">−</button>
           <button class="pct-btn zero" onclick="resetPct('before')">CLR</button>
-          <button class="pct-btn" id="bb-plus" ontouchstart="startHold(event,'before',1)" ontouchend="stopHold()" onmousedown="startHold(event,'before',1)" onmouseup="stopHold()" onmouseleave="stopHold()">+</button>
+          <button class="pct-btn" ontouchstart="startHold(event,'before',1)" ontouchend="stopHold()" onmousedown="startHold(event,'before',1)" onmouseup="stopHold()" onmouseleave="stopHold()">+</button>
         </div>
       </div>
       <div class="pct-box pct-after">
@@ -189,9 +168,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="pct-display" id="disp-after">0</div>
         <div class="pct-sign">%</div>
         <div class="pct-btns">
-          <button class="pct-btn" id="ba-minus" ontouchstart="startHold(event,'after',-1)" ontouchend="stopHold()" onmousedown="startHold(event,'after',-1)" onmouseup="stopHold()" onmouseleave="stopHold()">−</button>
+          <button class="pct-btn" ontouchstart="startHold(event,'after',-1)" ontouchend="stopHold()" onmousedown="startHold(event,'after',-1)" onmouseup="stopHold()" onmouseleave="stopHold()">−</button>
           <button class="pct-btn zero" onclick="resetPct('after')">CLR</button>
-          <button class="pct-btn" id="ba-plus" ontouchstart="startHold(event,'after',1)" ontouchend="stopHold()" onmousedown="startHold(event,'after',1)" onmouseup="stopHold()" onmouseleave="stopHold()">+</button>
+          <button class="pct-btn" ontouchstart="startHold(event,'after',1)" ontouchend="stopHold()" onmousedown="startHold(event,'after',1)" onmouseup="stopHold()" onmouseleave="stopHold()">+</button>
         </div>
       </div>
     </div>
@@ -200,7 +179,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="calc-preview" id="calc-preview">
     <div class="calc-row"><span class="calc-key">Battery change</span><span class="calc-val" id="calc-delta">—</span></div>
     <div class="calc-row"><span class="calc-key">kWh charged</span><span class="calc-val" id="calc-kwh">—</span></div>
-    <div class="calc-row"><span class="calc-key">Rate</span><span class="calc-val" id="calc-rate-shown">0.28 AED/kWh</span></div>
+    <div class="calc-row"><span class="calc-key">Rate</span><span class="calc-val" id="calc-rate-shown">0.399 AED/kWh</span></div>
     <div class="calc-row"><span class="calc-key">Estimated cost</span><span class="calc-val calc-total" id="calc-cost">—</span></div>
   </div>
 
@@ -248,44 +227,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="card-title">Monthly cost (AED)</div>
     <div id="chart-cost"></div>
   </div>
-  <button class="btn btn-secondary" onclick="loadFromSheet()" style="margin-top:0;">↓ Refresh from Google Sheet</button>
-  <button class="btn btn-ghost" onclick="fullResync()" style="margin-top:8px;font-size:13px;">↑ Force sync to Google Sheet</button>
+  <button class="btn btn-secondary" onclick="loadData()" style="margin-top:4px;">↺ Refresh</button>
+  <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:8px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">⬇ Export to CSV</button>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="card-title">All months breakdown</div>
+    <div id="monthly-table"></div>
+  </div>
 </div>
 
 <!-- SETUP -->
 <div class="page" id="page-setup">
-  <div class="section-head"><div class="section-title">Google Sheets Setup</div></div>
+  <div class="section-head"><div class="section-title">JSONBin Setup</div></div>
+
   <div class="setup-step">
     <div class="setup-num">1</div>
     <div class="setup-body">
-      <div class="setup-title">Create Google Sheet</div>
-      <div class="setup-text">Open Google Sheets and create a new spreadsheet named "EV Charge Tracker".</div>
-      <button class="btn btn-ghost" style="margin-top:10px;width:auto;padding:8px 16px;font-size:13px;" onclick="openLink('https://sheets.new')">Open Google Sheets ↗</button>
+      <div class="setup-title">Create free JSONBin account</div>
+      <div class="setup-text">Go to jsonbin.io → Sign up free (use Google or email).</div>
+      <button class="btn btn-ghost" style="margin-top:10px;width:auto;padding:8px 16px;font-size:13px;" onclick="window.open('https://jsonbin.io','_blank')">Open JSONBin ↗</button>
     </div>
   </div>
+
   <div class="setup-step">
     <div class="setup-num">2</div>
     <div class="setup-body">
-      <div class="setup-title">Add Apps Script</div>
-      <div class="setup-text">In your sheet: <b>Extensions → Apps Script</b> → paste this code → Save → Deploy → New Deployment → Web App → "Anyone" → Deploy → copy the URL</div>
-      <div class="code-block" id="apps-script-code"></div>
-      <button class="copy-btn" onclick="copyScript()">📋 Copy script</button>
-      <div id="script-copy-box" style="display:none;margin-top:10px;">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Select all and copy manually:</div>
-        <textarea id="script-select-all" style="width:100%;height:120px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-family:'DM Mono',monospace;font-size:10px;padding:10px;resize:none;" onclick="this.select()"></textarea>
-      </div>
+      <div class="setup-title">Get your API Key</div>
+      <div class="setup-text">After login → click your profile icon → API Keys → copy the <b>Secret Key</b> (starts with $2b$...)</div>
+      <input type="password" class="form-input" id="input-key" placeholder="$2b$10$..." style="margin-top:10px;">
     </div>
   </div>
+
   <div class="setup-step">
     <div class="setup-num">3</div>
     <div class="setup-body">
-      <div class="setup-title">Paste deployment URL</div>
-      <div class="setup-text">Paste the Web App URL here to connect:</div>
-      <div class="url-input-group">
-        <input type="url" class="form-input" id="sheet-url" placeholder="https://script.google.com/macros/s/...">
-        <button class="url-save-btn" onclick="saveSheetUrl()">Save</button>
-      </div>
-      <div class="sheet-status" id="sheet-status"></div>
+      <div class="setup-title">Create a Bin</div>
+      <div class="setup-text">Click <b>Bins → Create Bin</b> → paste <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;">{"sessions":[]}</code> as content → Create. Copy the <b>Bin ID</b> from the URL.</div>
+      <input type="text" class="form-input" id="input-bin" placeholder="Bin ID (e.g. 64a1b2c3d4e5f6...)" style="margin-top:10px;">
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">4</div>
+    <div class="setup-body">
+      <div class="setup-title">Save & connect</div>
+      <div class="setup-text">Tap Save — the app will instantly connect and load your data.</div>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
+      <div class="cred-status" id="cred-status"></div>
     </div>
   </div>
 </div>
@@ -338,18 +326,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="calc-row"><span class="calc-key">Cost</span><span class="calc-val calc-total" id="edit-calc-cost">—</span></div>
     </div>
     <div class="form-group">
-      <label class="form-label">Notes</label>
-      <input type="text" class="form-input" id="edit-notes">
-    </div>
-    <div class="form-group">
       <label class="form-label">Tariff rate (AED/kWh)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:4px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
         <button class="rate-opt-btn" onclick="setEditRate(0.23)" id="erate-023">0.23</button>
         <button class="rate-opt-btn" onclick="setEditRate(0.28)" id="erate-028">0.28</button>
         <button class="rate-opt-btn" onclick="setEditRate(0.38)" id="erate-038">0.38</button>
         <button class="rate-opt-btn" onclick="setEditRate(0.399)" id="erate-0399" style="font-size:11px;">0.399</button>
       </div>
-      <input type="number" class="form-input" id="edit-rate" step="0.01" min="0" placeholder="Custom rate" style="margin-top:6px;" oninput="recalcEdit()">
+      <input type="number" class="form-input" id="edit-rate" step="0.001" min="0" placeholder="Custom rate" oninput="recalcEdit()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" class="form-input" id="edit-notes">
     </div>
     <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
     <button class="btn btn-danger" style="margin-top:8px;" onclick="deleteSession()">Delete session</button>
@@ -362,300 +350,254 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">DEWA electricity rate</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Dubai commercial tariff — select your slab.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Select your tariff slab.</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
       <button class="btn btn-ghost" onclick="setRate(0.23)">0–1,000 kWh/month → <strong>0.23 AED/kWh</strong></button>
-      <button class="btn btn-ghost" onclick="setRate(0.28)" >1,001–3,000 kWh/month → <strong>0.28 AED/kWh</strong></button>
-      <button class="btn btn-ghost" onclick="setRate(0.38)">Above 3,000 kWh/month → <strong>0.38 AED/kWh</strong></button>
+      <button class="btn btn-ghost" onclick="setRate(0.28)">1,001–3,000 kWh/month → <strong>0.28 AED/kWh</strong></button>
+      <button class="btn btn-ghost" onclick="setRate(0.38)">2,001–4,000 kWh/month → <strong>0.38 AED/kWh</strong></button>
+      <button class="btn btn-ghost" onclick="setRate(0.399)" style="border-color:rgba(0,229,160,0.4);color:var(--accent);">Your bill (incl. surcharge+VAT) → <strong>0.399 AED/kWh</strong> ✓</button>
     </div>
     <div class="form-group">
       <label class="form-label">Custom rate</label>
-      <input type="number" class="form-input" id="custom-rate" step="0.01" min="0" placeholder="e.g. 0.28">
+      <input type="number" class="form-input" id="custom-rate" step="0.001" min="0" placeholder="e.g. 0.399">
     </div>
     <button class="btn btn-primary" onclick="saveCustomRate()">Apply</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeRateModal()">Close</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(10,14,20,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(10,14,20,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-  <div id="loading-text" style="font-size:14px;color:var(--text2);font-weight:500;">Syncing...</div>
+  <div id="loading-text" style="font-size:14px;color:var(--text2);font-weight:500;">Loading...</div>
 </div>
-<iframe name="sheet-iframe" style="display:none;"></iframe>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const BATTERY_KWH = 27.28;
+const APP_VERSION = '2.0';
 let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
-let sessions = []; // always loaded from Sheet
-let sheetUrl = localStorage.getItem('ev_sheet_url') || '';
+let sessions = [];
+let binId = localStorage.getItem('ev_bin_id') || '';
+let binKey = localStorage.getItem('ev_bin_key') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
-const APPS_SCRIPT = `function doPost(e) {
-  var output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
+// ── JSONBin API ──────────────────────────────────────────────────────────────
+async function binSave() {
+  const res = await fetch('https://api.jsonbin.io/v3/b/'+binId, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':binKey},
+    body: JSON.stringify({sessions})
+  });
+  if(!res.ok) throw new Error('Save failed: '+res.status);
+  return res.json();
+}
+
+async function binLoad() {
+  const res = await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {
+    headers:{'X-Master-Key':binKey}
+  });
+  if(!res.ok) throw new Error('Load failed: '+res.status);
+  const data = await res.json();
+  return Array.isArray(data.record?.sessions) ? data.record.sessions : [];
+}
+
+async function loadData() {
+  if(!binId||!binKey){ renderHistory(); renderSummary(); return; }
+  showLoading('Loading...');
   try {
-    var p = JSON.parse(e.postData.contents);
-    var result = handleAction(p);
-    output.setContent(JSON.stringify(result));
-  } catch(err) {
-    output.setContent(JSON.stringify({status:'error',message:err.toString()}));
-  }
-  return output;
+    const raw = await binLoad();
+    sessions = raw.map((s,i)=>({
+      id: s.id||('s'+Date.now()+i),
+      date: normalizeDate(s.date),
+      time: String(s.time||'00:00').slice(0,5),
+      location: s.location||'Dubai Office',
+      before: Number(s.before)||0,
+      after: Number(s.after)||0,
+      kwh: Number(s.kwh)||0,
+      rate: Number(s.rate)||currentRate,
+      cost: Number(s.cost)||0,
+      notes: s.notes||''
+    }));
+    sessions.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  } catch(e){ console.error(e); showToast('Load failed — check credentials','error'); }
+  hideLoading();
+  renderHistory(); renderSummary();
 }
 
-function doGet(e) {
-  var output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
+async function saveData(msg='Saved ✓') {
+  if(!binId||!binKey){ showToast('Set up JSONBin in Setup tab','error'); return false; }
+  showLoading('Saving...');
   try {
-    var p = e.parameter;
-    var result = handleAction(p);
-    output.setContent(JSON.stringify(result));
-  } catch(err) {
-    output.setContent(JSON.stringify({status:'error',message:err.toString()}));
+    await binSave();
+    hideLoading();
+    showToast(msg,'success');
+    return true;
+  } catch(e){
+    hideLoading();
+    showToast('Save failed — check credentials','error');
+    console.error(e);
+    return false;
   }
-  return output;
 }
 
-function handleAction(p) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  var log = sheet.getSheetByName("Log") || sheet.insertSheet("Log");
+// ── EXPORT CSV ──────────────────────────────────────────────────────────────
+function exportCSV() {
+  if(!sessions.length){ showToast('No data to export','error'); return; }
+  const headers = ['Date','Time','Location','Before %','After %','kWh','Rate AED/kWh','Cost AED','Notes'];
+  const rows = sessions.map(s => [
+    normalizeDate(s.date),
+    s.time,
+    s.location,
+    s.before,
+    s.after,
+    s.kwh,
+    s.rate,
+    s.cost,
+    s.notes||''
+  ]);
+  // Add summary rows at bottom
+  const totalKwh = sessions.reduce((a,s)=>a+Number(s.kwh),0).toFixed(2);
+  const totalCost = sessions.reduce((a,s)=>a+Number(s.cost),0).toFixed(2);
+  rows.push([]);
+  rows.push(['TOTAL','','','',' ',totalKwh,'',totalCost,'']);
 
-  if (log.getLastRow() === 0) {
-    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
-    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-  }
+  const csv = [headers, ...rows]
+    .map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
+    .join('\n');
 
-  if (p.action === "add") {
-    log.appendRow([p.date,p.time,p.location,Number(p.before),Number(p.after),Number(p.kwh),Number(p.rate),Number(p.cost),p.notes||""]);
-    updateSummary(sheet);
-    return {status:"ok",action:"add"};
-  }
-
-  if (p.action === "resync") {
-    var data = p.sessions || [];
-    log.clearContents();
-    log.appendRow(["Date","Time","Location","Before %","After %","kWh","Rate AED/kWh","Cost AED","Notes"]);
-    log.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-    for (var i=0;i<data.length;i++) {
-      var s=data[i];
-      log.appendRow([s.date,s.time,s.location,Number(s.before),Number(s.after),Number(s.kwh),Number(s.rate),Number(s.cost),s.notes||""]);
-    }
-    updateSummary(sheet);
-    return {status:"ok",action:"resync",count:data.length};
-  }
-
-  if (p.action === "read") {
-    var rows = log.getDataRange().getValues();
-    var result = [];
-    for (var i=1;i<rows.length;i++) {
-      var r=rows[i]; if(!r[0]) continue;
-      result.push({date:String(r[0]),time:String(r[1]),location:String(r[2]),before:Number(r[3]),after:Number(r[4]),kwh:Number(r[5]),rate:Number(r[6]),cost:Number(r[7]),notes:String(r[8]||"")});
-    }
-    return {status:"ok",sessions:result};
-  }
-
-  return {status:"ok",message:"connected"};
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'EV-Charging-'+date+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exported ✓','success');
 }
 
-function updateSummary(sheet) {
-  var log = sheet.getSheetByName("Log");
-  var sum = sheet.getSheetByName("Summary") || sheet.insertSheet("Summary");
-  sum.clearContents();
-  sum.appendRow(["Month","Sessions","kWh Charged","Total Cost AED","Avg Cost AED"]);
-  sum.getRange(1,1,1,5).setFontWeight("bold").setBackground("#1a1a2e").setFontColor("#00e5a0");
-  var rows = log.getDataRange().getValues();
-  var months = {};
-  for (var i=1;i<rows.length;i++){
-    var r=rows[i]; if(!r[0]) continue;
-    var m=String(r[0]).substring(0,7);
-    if(!months[m]) months[m]={count:0,kwh:0,cost:0};
-    months[m].count++; months[m].kwh+=parseFloat(r[5])||0; months[m].cost+=parseFloat(r[7])||0;
-  }
-  var keys=Object.keys(months).sort();
-  for(var k=0;k<keys.length;k++){
-    var mo=months[keys[k]];
-    sum.appendRow([keys[k],mo.count,mo.kwh.toFixed(2),mo.cost.toFixed(2),(mo.cost/mo.count).toFixed(2)]);
-  }
-}`;
-
-function normalizeDate(val) {
-  if (!val) return '';
-  const s = String(val).trim();
-  // Already YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // Has T (ISO string)
-  if (s.includes('T')) return s.split('T')[0];
-  // Google Sheets serial number (e.g. 46748)
-  if (/^\d+$/.test(s)) {
-    const d = new Date((parseFloat(s) - 25569) * 86400000);
-    return d.toISOString().split('T')[0];
-  }
-  // Any other date string (e.g. "Tue May 06 2026 00:00:00")
-  try {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,'0');
-      const day = String(d.getDate()).padStart(2,'0');
-      return y+'-'+m+'-'+day;
-    }
-  } catch(e) {}
-  return s;
-}
-
-function showLoading(msg='Syncing...') {
-  const o=document.getElementById('loading-overlay');
-  document.getElementById('loading-text').textContent=msg;
-  o.style.display='flex';
-}
-function hideLoading() {
-  document.getElementById('loading-overlay').style.display='none';
-}
-
-const APP_VERSION = '1.6'; // update this each release
-
+// ── INIT ────────────────────────────────────────────────────────────────────
 async function init() {
-  document.getElementById('app-ver').textContent = 'v' + APP_VERSION;
+  document.getElementById('app-ver').textContent = 'v'+APP_VERSION;
   const now = new Date();
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
-  document.getElementById('rate-display').textContent = currentRate.toFixed(3);
-  document.getElementById('calc-rate-shown').textContent = currentRate.toFixed(3) + ' AED/kWh';
-  document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
-  const scriptBox = document.getElementById('script-select-all');
-  if(scriptBox) scriptBox.value = APPS_SCRIPT;
-  if (sheetUrl) {
-    document.getElementById('sheet-url').value = sheetUrl;
-    document.getElementById('sheet-status').textContent = '✓ Connected to Google Sheet';
-    document.getElementById('sheet-status').className = 'sheet-status connected';
-    // Sheet is source of truth - always fetch on load
-    await loadFromSheet();
+  updateRateDisplay();
+  if(binId&&binKey){
+    document.getElementById('input-bin').value = binId;
+    document.getElementById('input-key').value = binKey;
+    document.getElementById('cred-status').textContent = '✓ Connected to JSONBin';
+    document.getElementById('cred-status').className = 'cred-status connected';
+    await loadData();
   } else {
     renderHistory(); renderSummary();
   }
 }
 
-// Always pull fresh data from sheet
-async function loadFromSheet() {
-  if(!sheetUrl) return;
-  showLoading('Loading data...');
+// ── CREDENTIALS ─────────────────────────────────────────────────────────────
+async function saveCredentials() {
+  const key = document.getElementById('input-key').value.trim();
+  const bin = document.getElementById('input-bin').value.trim();
+  if(!key||!bin){ showToast('Enter both API key and Bin ID','error'); return; }
+  binKey = key; binId = bin;
+  localStorage.setItem('ev_bin_key', key);
+  localStorage.setItem('ev_bin_id', bin);
+  showLoading('Connecting...');
   try {
-    const url = sheetUrl + '?action=read&t=' + Date.now();
-    const res = await fetch(url);
-    const data = await res.json();
-    if(data.status === 'ok' && Array.isArray(data.sessions)) {
-      if(data.sessions.length === 0) { sessions=[]; saveSessions(); hideLoading(); renderHistory(); renderSummary(); return; }
-      const imported = data.sessions.map((s,i) => {
-        let d = normalizeDate(s.date);
-        let t = String(s.time||'').trim().slice(0,5);
-        if(!t||!t.includes(':')) t='00:00';
-        return {
-          id: 'sheet_'+i+'_'+d.replace(/-/g,''),
-          date:d, time:t,
-          location: s.location||'Dubai Office',
-          before: Number(s.before)||0, after: Number(s.after)||0,
-          kwh: Number(s.kwh)||0, rate: Number(s.rate)||currentRate,
-          cost: Number(s.cost)||0, notes: s.notes||'', synced:true
-        };
-      });
-      imported.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-      sessions = imported;
-      // no local save - sheet is source of truth
-    }
-  } catch(e) { console.error('Load from sheet failed', e); }
-  hideLoading();
-  renderHistory(); renderSummary();
+    await binLoad();
+    hideLoading();
+    document.getElementById('cred-status').textContent = '✓ Connected to JSONBin';
+    document.getElementById('cred-status').className = 'cred-status connected';
+    showToast('Connected ✓','success');
+    await loadData();
+  } catch(e){
+    hideLoading();
+    document.getElementById('cred-status').textContent = '✗ Connection failed — check credentials';
+    document.getElementById('cred-status').className = 'cred-status error';
+    showToast('Connection failed','error');
+  }
 }
 
+// ── PCT STEPPER ──────────────────────────────────────────────────────────────
 function setPct(key, val) {
   val = Math.max(0, Math.min(100, Math.round(val)));
   pctVals[key] = val;
-  const ids = { before:'disp-before', after:'disp-after', 'edit-before':'edit-disp-before', 'edit-after':'edit-disp-after' };
+  const ids={before:'disp-before',after:'disp-after','edit-before':'edit-disp-before','edit-after':'edit-disp-after'};
   document.getElementById(ids[key]).textContent = val;
-  // Auto-bump: after must always be > before
-  if (key==='before' && pctVals['after'] <= val) {
-    const bumped = Math.min(100, val + 1);
-    pctVals['after'] = bumped;
-    document.getElementById('disp-after').textContent = bumped;
+  if(key==='before'&&pctVals['after']<=val){
+    const b=Math.min(100,val+1); pctVals['after']=b;
+    document.getElementById('disp-after').textContent=b;
   }
-  if (key==='edit-before' && pctVals['edit-after'] <= val) {
-    const bumped = Math.min(100, val + 1);
-    pctVals['edit-after'] = bumped;
-    document.getElementById('edit-disp-after').textContent = bumped;
+  if(key==='edit-before'&&pctVals['edit-after']<=val){
+    const b=Math.min(100,val+1); pctVals['edit-after']=b;
+    document.getElementById('edit-disp-after').textContent=b;
   }
-  if (key==='before'||key==='after') recalculate();
-  if (key==='edit-before'||key==='edit-after') recalcEdit();
+  if(key==='before'||key==='after') recalculate();
+  if(key==='edit-before'||key==='edit-after') recalcEdit();
 }
-function resetPct(key) { setPct(key, 0); }
+function resetPct(key){ setPct(key,0); }
+function startHold(e,key,dir){
+  e.preventDefault(); stopHold(); holdActive=true;
+  setPct(key,pctVals[key]+dir);
+  holdTimer=setTimeout(()=>{holdInterval=setInterval(()=>{if(holdActive)setPct(key,pctVals[key]+dir);},60);},350);
+}
+function stopHold(){ holdActive=false; clearTimeout(holdTimer); clearInterval(holdInterval); holdTimer=holdInterval=null; }
 
-function startHold(e, key, dir) {
-  e.preventDefault();
-  stopHold();
-  holdActive = true;
-  setPct(key, pctVals[key] + dir);
-  holdTimer = setTimeout(() => {
-    holdInterval = setInterval(() => { if (holdActive) setPct(key, pctVals[key] + dir); }, 60);
-  }, 350);
-}
-function stopHold() {
-  holdActive = false;
-  clearTimeout(holdTimer); clearInterval(holdInterval);
-  holdTimer = holdInterval = null;
-}
-
-function recalculate() {
-  const b = pctVals['before'], a = pctVals['after'];
-  if (a <= b) { document.getElementById('calc-preview').classList.remove('visible'); return; }
-  const delta = a - b;
-  const kwh = (BATTERY_KWH * delta / 100).toFixed(2);
-  const cost = (parseFloat(kwh) * currentRate).toFixed(2);
-  document.getElementById('calc-delta').textContent = delta + '%';
-  document.getElementById('calc-kwh').textContent = kwh + ' kWh';
-  document.getElementById('calc-cost').textContent = cost + ' AED';
+// ── CALC ─────────────────────────────────────────────────────────────────────
+function recalculate(){
+  const b=pctVals['before'],a=pctVals['after'];
+  if(a<=b){document.getElementById('calc-preview').classList.remove('visible');return;}
+  const delta=a-b, kwh=(BATTERY_KWH*delta/100).toFixed(2), cost=(parseFloat(kwh)*currentRate).toFixed(2);
+  document.getElementById('calc-delta').textContent=delta+'%';
+  document.getElementById('calc-kwh').textContent=kwh+' kWh';
+  document.getElementById('calc-cost').textContent=cost+' AED';
   document.getElementById('calc-preview').classList.add('visible');
 }
-function recalcEdit() {
-  const b = pctVals['edit-before'], a = pctVals['edit-after'];
-  if(a <= b) return;
-  const rateEl = document.getElementById('edit-rate');
-  const r = rateEl ? (parseFloat(rateEl.value)||currentRate) : currentRate;
-  const kwh = (BATTERY_KWH * (a-b) / 100).toFixed(2);
-  document.getElementById('edit-calc-kwh').textContent = kwh + ' kWh';
-  document.getElementById('edit-calc-cost').textContent = (parseFloat(kwh)*r).toFixed(2) + ' AED';
-}
-function setEditRate(r) {
-  const el = document.getElementById('edit-rate');
-  if(el) el.value = r;
-  document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
-  const map = {0.23:'erate-023', 0.28:'erate-028', 0.38:'erate-038', 0.399:'erate-0399'};
-  const btn = document.getElementById(map[r]);
-  if(btn) btn.classList.add('active');
-  recalcEdit();
+function recalcEdit(){
+  const b=pctVals['edit-before'],a=pctVals['edit-after'];
+  if(a<=b) return;
+  const r=parseFloat(document.getElementById('edit-rate').value)||currentRate;
+  const kwh=(BATTERY_KWH*(a-b)/100).toFixed(2);
+  document.getElementById('edit-calc-kwh').textContent=kwh+' kWh';
+  document.getElementById('edit-calc-cost').textContent=(parseFloat(kwh)*r).toFixed(2)+' AED';
 }
 
-function switchTab(tab) {
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['log','history','summary','setup'][i]===tab));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
-  if (tab==='history') renderHistory();
-  if (tab==='summary') renderSummary();
+  if(tab==='history') renderHistory();
+  if(tab==='summary') renderSummary();
 }
 
-async function saveSession() {
-  const b=pctVals['before'], a=pctVals['after'];
+// ── SAVE SESSION ─────────────────────────────────────────────────────────────
+async function saveSession(){
+  const b=pctVals['before'],a=pctVals['after'];
   const date=document.getElementById('log-date').value;
-  if (!date||a<=b) { showToast('Set valid before & after %', 'error'); return; }
+  if(!date||a<=b){showToast('Set valid before & after %','error');return;}
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
   const cost=parseFloat((kwh*currentRate).toFixed(2));
-  const s={id:Date.now().toString(),date:normalizeDate(date),time:document.getElementById('log-time').value,location:document.getElementById('log-location').value||'Dubai Office',before:b,after:a,kwh,rate:currentRate,cost,notes:document.getElementById('log-notes').value,synced:false};
-  sessions.unshift(s); resetLogForm();
-  showToast('Session saved ✓', 'success');
-  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
-  else { renderHistory(); renderSummary(); }
+  const s={
+    id:'s'+Date.now(),
+    date:normalizeDate(date),
+    time:document.getElementById('log-time').value,
+    location:document.getElementById('log-location').value||'Dubai Office',
+    before:b,after:a,kwh,rate:currentRate,cost,
+    notes:document.getElementById('log-notes').value
+  };
+  sessions.unshift(s);
+  resetLogForm();
+  renderHistory(); renderSummary();
+  await saveData('Session saved ✓');
 }
-function resetLogForm() {
+
+function resetLogForm(){
   const now=new Date();
   document.getElementById('log-date').value=now.toISOString().split('T')[0];
   document.getElementById('log-time').value=now.toTimeString().slice(0,5);
@@ -663,242 +605,205 @@ function resetLogForm() {
   setPct('before',0); setPct('after',0);
   document.getElementById('calc-preview').classList.remove('visible');
 }
-function saveSessions(){ /* no-op: sheet is source of truth */ }
 
-function renderHistory() {
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function renderHistory(){
   const list=document.getElementById('history-list');
   document.getElementById('history-count').textContent=sessions.length+' sessions';
-  if (!sessions.length) {
-    const msg = sheetUrl ? 'No sessions in Sheet yet.<br>Log your first charge above.' : '⚠️ No Sheet connected.<br>Go to Setup tab and add your<br>Google Sheet URL first.';
-    list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">${sheetUrl?'⚡':'🔗'}</div><div class="empty-state-text">${msg}</div></div>`;
+  if(!sessions.length){
+    const msg=binId&&binKey?'No sessions yet.<br>Log your first charge above.':'No JSONBin connected.<br>Go to Setup tab to connect.';
+    list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">${binId&&binKey?'⚡':'🔗'}</div><div class="empty-state-text">${msg}</div></div>`;
     return;
   }
   list.innerHTML=sessions.map(s=>`
     <div class="log-entry">
       <div class="log-entry-head">
         <div><div class="log-entry-date">${formatDate(s.date)}</div><div class="log-entry-time">${s.time} · ${s.location}</div></div>
-        <div class="log-entry-cost">${s.cost.toFixed(2)} AED</div>
+        <div class="log-entry-cost">${Number(s.cost).toFixed(2)} AED</div>
       </div>
       <div class="log-entry-meta">
         <span class="badge badge-kwh">${s.kwh} kWh</span>
         <span class="badge badge-pct">${s.before}% → ${s.after}%</span>
         ${s.notes?`<span class="badge badge-note">${s.notes}</span>`:''}
-        ${s.synced?`<span class="badge badge-sync">↑ synced</span>`:''}
       </div>
       <button class="btn btn-ghost" style="font-size:12px;padding:8px;" onclick="openEdit('${s.id}')">✏️ Edit session</button>
     </div>`).join('');
 }
 
-function renderSummary() {
-  const tk=sessions.reduce((a,s)=>a+s.kwh,0), tc=sessions.reduce((a,s)=>a+s.cost,0);
+function renderSummary(){
+  const tk=sessions.reduce((a,s)=>a+Number(s.kwh),0);
+  const tc=sessions.reduce((a,s)=>a+Number(s.cost),0);
   document.getElementById('sum-kwh').innerHTML=tk.toFixed(1)+'<span class="stat-unit">kWh</span>';
   document.getElementById('sum-cost').innerHTML=tc.toFixed(2)+'<span class="stat-unit">AED</span>';
   document.getElementById('sum-sessions').textContent=sessions.length;
   document.getElementById('sum-avg').innerHTML=(sessions.length?(tc/sessions.length).toFixed(2):'0')+'<span class="stat-unit">AED</span>';
+
+  // Build months map - all time
   const months={};
   sessions.forEach(s=>{
     const nd=normalizeDate(s.date);
     const m=nd.slice(0,7);
-    if(!months[m])months[m]={kwh:0,cost:0};
-    months[m].kwh+=s.kwh;months[m].cost+=s.cost;
+    if(!months[m])months[m]={kwh:0,cost:0,sessions:0};
+    months[m].kwh+=Number(s.kwh);
+    months[m].cost+=Number(s.cost);
+    months[m].sessions++;
   });
-  const keys=Object.keys(months).sort().slice(-6);
-  const mxK=Math.max(...keys.map(k=>months[k].kwh),1), mxC=Math.max(...keys.map(k=>months[k].cost),1);
-  document.getElementById('chart-kwh').innerHTML=keys.length?keys.map(k=>`<div class="chart-bar-group"><div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh/mxK*100).toFixed(1)}%"></div></div></div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
-  document.getElementById('chart-cost').innerHTML=keys.length?keys.map(k=>`<div class="chart-bar-group"><div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div><div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost/mxC*100).toFixed(1)}%"></div></div></div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+  const allKeys=Object.keys(months).sort();
+
+  // Charts: last 12 months
+  const chartKeys=allKeys.slice(-12);
+  const mxK=Math.max(...chartKeys.map(k=>months[k].kwh),1);
+  const mxC=Math.max(...chartKeys.map(k=>months[k].cost),1);
+
+  document.getElementById('chart-kwh').innerHTML=chartKeys.length?chartKeys.map(k=>`
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh/mxK*100).toFixed(1)}%"></div></div>
+    </div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  document.getElementById('chart-cost').innerHTML=chartKeys.length?chartKeys.map(k=>`
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost/mxC*100).toFixed(1)}%"></div></div>
+    </div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  // Full monthly breakdown table - all time, newest first
+  const tableKeys=[...allKeys].reverse();
+  const tableEl=document.getElementById('monthly-table');
+  if(!tableKeys.length){
+    tableEl.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">No data yet</div>';
+    return;
+  }
+  const totalRow=`
+    <tr style="border-top:2px solid var(--border2);font-weight:600;">
+      <td style="padding:10px 8px;color:var(--text);">All time</td>
+      <td style="padding:10px 8px;text-align:center;color:var(--text);">${sessions.length}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${tk.toFixed(1)}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${tc.toFixed(2)}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${sessions.length?(tc/sessions.length).toFixed(2):'-'}</td>
+    </tr>`;
+  tableEl.innerHTML=`
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border2);">
+          <th style="padding:8px;text-align:left;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Month</th>
+          <th style="padding:8px;text-align:center;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Sessions</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">kWh</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Cost AED</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Avg AED</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableKeys.map((k,i)=>`
+          <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'};">
+            <td style="padding:10px 8px;color:var(--text);font-weight:500;">${formatMonth(k)}</td>
+            <td style="padding:10px 8px;text-align:center;color:var(--text2);">${months[k].sessions}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${months[k].kwh.toFixed(1)}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${months[k].cost.toFixed(2)}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${(months[k].cost/months[k].sessions).toFixed(2)}</td>
+          </tr>`).join('')}
+        ${totalRow}
+      </tbody>
+    </table>`;
 }
 
-function openEdit(id) {
+// ── EDIT / DELETE ─────────────────────────────────────────────────────────────
+function openEdit(id){
   const s=sessions.find(x=>x.id===id); if(!s) return;
   document.getElementById('edit-id').value=s.id;
-  document.getElementById('edit-date').value = normalizeDate(s.date);
-  // Normalize time - ensure HH:MM format
-  let timeVal = s.time ? String(s.time).trim() : '';
-  if(timeVal && timeVal.length === 4 && !timeVal.includes(':')) timeVal = timeVal.slice(0,2)+':'+timeVal.slice(2);
-  if(!timeVal.includes(':') && timeVal) timeVal = '00:00';
-  document.getElementById('edit-time').value = timeVal.slice(0,5);
+  document.getElementById('edit-date').value=normalizeDate(s.date);
+  document.getElementById('edit-time').value=String(s.time||'00:00').slice(0,5);
   document.getElementById('edit-location').value=s.location||'Dubai Office';
   document.getElementById('edit-notes').value=s.notes||'';
-  setPct('edit-before', parseInt(s.before)||0);
-  setPct('edit-after', parseInt(s.after)||0);
-  const sessionRate = s.rate || currentRate;
-  document.getElementById('edit-rate').value = sessionRate;
-  // Highlight matching preset button
-  document.querySelectorAll('.rate-opt-btn').forEach(b => b.classList.remove('active'));
-  const presets = [0.23, 0.28, 0.38, 0.399];
-  if(presets.includes(sessionRate)) setEditRate(sessionRate);
+  const r=s.rate||currentRate;
+  document.getElementById('edit-rate').value=r;
+  document.querySelectorAll('.rate-opt-btn').forEach(b=>b.classList.remove('active'));
+  const map={0.23:'erate-023',0.28:'erate-028',0.38:'erate-038',0.399:'erate-0399'};
+  if(map[r]) document.getElementById(map[r])?.classList.add('active');
+  setPct('edit-before',parseInt(s.before)||0);
+  setPct('edit-after',parseInt(s.after)||0);
   recalcEdit();
   document.getElementById('edit-modal').classList.add('open');
 }
-async function saveEdit() {
+
+async function saveEdit(){
   const id=document.getElementById('edit-id').value;
   const idx=sessions.findIndex(x=>x.id===id); if(idx===-1) return;
-  const b=pctVals['edit-before'], a=pctVals['edit-after'];
+  const b=pctVals['edit-before'],a=pctVals['edit-after'];
   if(a<=b){showToast('After must be greater than before','error');return;}
-  const editedRate = parseFloat(document.getElementById('edit-rate').value) || currentRate;
+  const r=parseFloat(document.getElementById('edit-rate').value)||currentRate;
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
-  const cost=parseFloat((kwh*editedRate).toFixed(2));
-  sessions[idx]={...sessions[idx],date:normalizeDate(document.getElementById('edit-date').value),time:document.getElementById('edit-time').value,location:document.getElementById('edit-location').value,before:b,after:a,kwh,rate:editedRate,cost,notes:document.getElementById('edit-notes').value,synced:true};
-  closeModal();
-  showToast('Session updated ✓','success');
-  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
-  else { renderHistory(); renderSummary(); }
+  const cost=parseFloat((kwh*r).toFixed(2));
+  sessions[idx]={...sessions[idx],
+    date:normalizeDate(document.getElementById('edit-date').value),
+    time:document.getElementById('edit-time').value,
+    location:document.getElementById('edit-location').value,
+    before:b,after:a,kwh,rate:r,cost,
+    notes:document.getElementById('edit-notes').value
+  };
+  closeModal(); renderHistory(); renderSummary();
+  await saveData('Updated ✓');
 }
-async function deleteSession() {
+
+async function deleteSession(){
   const id=document.getElementById('edit-id').value;
   if(!confirm('Delete this session?')) return;
   sessions=sessions.filter(s=>s.id!==id);
-  closeModal();
-  showToast('Session deleted','error');
-  if(sheetUrl) { await fullResync(true); await loadFromSheet(); }
-  else { renderHistory(); renderSummary(); }
-}
-function closeModal(){document.getElementById('edit-modal').classList.remove('open');}
-
-// Core fetch to Apps Script - sends JSON body, Apps Script reads via postData
-async function callSheet(payload) {
-  const res = await fetch(sheetUrl, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
-  return res.json();
+  closeModal(); renderHistory(); renderSummary();
+  await saveData('Deleted');
 }
 
-async function pushToSheet(s) {
-  if(!sheetUrl) return;
-  try {
-    await callSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
-    const idx=sessions.findIndex(x=>x.id===s.id);
-    if(idx>-1){sessions[idx].synced=true;saveSessions();}
-  } catch(e){console.error('push failed',e);}
+function closeModal(){ document.getElementById('edit-modal').classList.remove('open'); }
+function setEditRate(r){
+  document.getElementById('edit-rate').value=r;
+  document.querySelectorAll('.rate-opt-btn').forEach(b=>b.classList.remove('active'));
+  const map={0.23:'erate-023',0.28:'erate-028',0.38:'erate-038',0.399:'erate-0399'};
+  if(map[r]) document.getElementById(map[r])?.classList.add('active');
+  recalcEdit();
 }
 
-async function syncToSheet() {
-  if(!sheetUrl){showToast('Set up Google Sheet first in Setup tab','error');return;}
-  const unsynced = sessions.filter(s=>!s.synced);
-  if(!unsynced.length){showToast('All sessions already synced ✓','success');return;}
-  showToast('Syncing '+unsynced.length+' sessions...','success');
-  try {
-    for(let i=0;i<unsynced.length;i++){
-      const s=unsynced[i];
-      await callSheet({action:'add',date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''});
-      const idx=sessions.findIndex(x=>x.id===s.id);
-      if(idx>-1) sessions[idx].synced=true;
-      await new Promise(r=>setTimeout(r,300));
-    }
-    saveSessions(); renderHistory();
-    showToast('Synced '+unsynced.length+' sessions ✓','success');
-  } catch(e){showToast('Sync failed - check Setup','error');console.error(e);}
-}
-
-async function fullResync(silent=false) {
-  if(!sheetUrl){showToast('Set up Google Sheet first in Setup tab','error');return;}
-  if(!silent) showToast('Syncing to Sheet...','success');
-  try {
-    const payload = {
-      action:'resync',
-      sessions: sessions.map(s=>({date:s.date,time:s.time,location:s.location,before:s.before,after:s.after,kwh:s.kwh,rate:s.rate,cost:s.cost,notes:s.notes||''}))
-    };
-    await callSheet(payload);
-    sessions.forEach(s=>s.synced=true); saveSessions(); renderHistory();
-    showToast('Sheet synced ✓ ('+sessions.length+' sessions)','success');
-  } catch(e){showToast('Sync failed - check Setup','error');console.error(e);}
-}
-
-
-async function importFromSheet() {
-  if(!sheetUrl){showToast('Set up Google Sheet first','error');return;}
-  showToast('Importing from Google Sheet...','success');
-  try {
-    const url = sheetUrl + '?action=read&t=' + Date.now();
-    const res = await fetch(url);
-    const data = await res.json();
-    if(data.status !== 'ok' || !data.sessions){showToast('Could not read Sheet data','error');return;}
-    const imported = data.sessions;
-    if(!imported.length){showToast('No data found in Sheet','error');return;}
-    // Merge: keep local sessions not in sheet, add all sheet sessions
-    const newSessions = imported.map((s,i) => {
-      let d = normalizeDate(s.date);
-      // Normalize time
-      let t = String(s.time||'').trim().slice(0,5);
-      if(!t || !t.includes(':')) t = '00:00';
-      return {
-        id: 'sheet_' + i + '_' + d.replace(/-/g,''),
-        date: d, time: t,
-        location: s.location || 'Dubai Office',
-        before: Number(s.before)||0, after: Number(s.after)||0,
-        kwh: Number(s.kwh)||0, rate: Number(s.rate)||0.28,
-        cost: Number(s.cost)||0, notes: s.notes || '', synced: true
-      };
-    });
-    // Sort newest first
-    newSessions.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
-    sessions = newSessions;
-    saveSessions();
-    renderHistory(); renderSummary();
-    showToast('Imported ' + imported.length + ' sessions ✓', 'success');
-  } catch(e) {
-    showToast('Import failed — redeploy Apps Script', 'error');
-    console.error('Import error:', e);
-  }
-}
-
-function saveSheetUrl() {
-  const url=document.getElementById('sheet-url').value.trim();
-  if(!url.startsWith('https://script.google.com')){showToast('Invalid Apps Script URL','error');return;}
-  sheetUrl=url; localStorage.setItem('ev_sheet_url',url);
-  document.getElementById('sheet-status').textContent='✓ Connected to Google Sheet';
-  document.getElementById('sheet-status').className='sheet-status connected';
-  showToast('Sheet URL saved ✓','success');
-}
-function copyScript(){
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = APPS_SCRIPT;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    ta.style.top = '0';
-    ta.style.left = '0';
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    ta.setSelectionRange(0, 99999);
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    if(ok) { showToast('Script copied ✓','success'); return; }
-  } catch(e) {}
-  // Fallback: show in a selectable box
-  document.getElementById('script-copy-box').style.display='block';
-  showToast('Select all text below and copy','success');
-}
-function openRateModal(){document.getElementById('rate-modal').classList.add('open');}
-function closeRateModal(){document.getElementById('rate-modal').classList.remove('open');}
-function setRate(r){
-  currentRate=r; localStorage.setItem('ev_rate',r);
-  const d = r===Math.floor(r*100)/100 ? r.toFixed(2) : r.toFixed(3);
+// ── RATE ─────────────────────────────────────────────────────────────────────
+function updateRateDisplay(){
+  const d=currentRate%1===0?currentRate.toFixed(2):(currentRate===0.399?'0.399':currentRate.toFixed(3));
   document.getElementById('rate-display').textContent=d;
   document.getElementById('calc-rate-shown').textContent=d+' AED/kWh';
-  document.getElementById('custom-rate').value=r;
-  closeRateModal(); showToast('Rate set to '+d+' AED/kWh','success');
+}
+function openRateModal(){ document.getElementById('rate-modal').classList.add('open'); }
+function closeRateModal(){ document.getElementById('rate-modal').classList.remove('open'); }
+function setRate(r){
+  currentRate=r; localStorage.setItem('ev_rate',r);
+  updateRateDisplay(); closeRateModal();
+  showToast('Rate set to '+r+' AED/kWh','success');
 }
 function saveCustomRate(){
   const v=parseFloat(document.getElementById('custom-rate').value);
   if(isNaN(v)||v<=0){showToast('Invalid rate','error');return;} setRate(v);
 }
-function openLink(url){window.open(url,'_blank');}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function normalizeDate(val){
+  if(!val) return '';
+  const s=String(val).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if(s.includes('T')) return s.split('T')[0];
+  if(/^\d{5,}$/.test(s)){ const d=new Date((parseFloat(s)-25569)*86400000); return d.toISOString().split('T')[0]; }
+  try{ const d=new Date(s); if(!isNaN(d.getTime())){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); } }catch(e){}
+  return s;
+}
 function formatDate(d){
-  const nd = normalizeDate(d);
+  const nd=normalizeDate(d);
+  if(!nd) return 'Unknown date';
   return new Date(nd+'T00:00:00').toLocaleDateString('en-AE',{day:'numeric',month:'short',year:'numeric'});
 }
 function formatMonth(m){
-  // m could be "2026-05" or "Wed May 06 2026..."
-  let clean = m;
-  if(!clean.match(/^\d{4}-\d{2}$/)) {
-    const d = new Date(clean);
-    if(!isNaN(d)) clean = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  }
-  return new Date(clean+'-01').toLocaleDateString('en-AE',{month:'short',year:'numeric'});
+  if(!m||!m.match(/^\d{4}-\d{2}$/)) return m;
+  return new Date(m+'-01').toLocaleDateString('en-AE',{month:'short',year:'numeric'});
 }
+function showLoading(msg='Loading...'){
+  document.getElementById('loading-text').textContent=msg;
+  document.getElementById('loading-overlay').style.display='flex';
+}
+function hideLoading(){ document.getElementById('loading-overlay').style.display='none'; }
 function showToast(msg,type='success'){
   const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type;
   setTimeout(()=>t.classList.remove('show'),2800);
