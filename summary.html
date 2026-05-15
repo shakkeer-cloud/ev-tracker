@@ -88,6 +88,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes spin{to{transform:rotate(360deg);}}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.desktop-2col{margin-bottom:12px;}
+/* ── Desktop layout ─────────────────────────────────────────────────────── */
+@media(min-width:768px){
+  .page{max-width:1080px;margin:0 auto;padding:24px 32px;}
+  .stat-grid{grid-template-columns:repeat(3,1fr);}
+  .desktop-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .desktop-2col>.card{margin-bottom:0;}
+  .desktop-2col>*{min-width:0;}
+  .desktop-full{margin-bottom:12px;}
+  .desktop-full>.card{margin-bottom:0;}
+}
 </style>
 </head>
 <body>
@@ -125,29 +136,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <!-- Summary content -->
   <div id="summary-section" style="display:none;">
 
-    <!-- 1. MONTHLY COST HERO -->
-    <div class="card hero-card">
-      <div class="hero-top">
-        <div>
-          <div class="card-title" style="color:rgba(245,166,35,0.6);">Monthly cost</div>
-          <div style="display:flex;align-items:baseline;gap:8px;">
-            <div class="hero-amount" id="hero-cost">0.00</div>
-            <div style="font-size:16px;font-weight:500;color:var(--text2);">AED</div>
+    <!-- 1+2. HERO + THIS MONTH (side by side on desktop) -->
+    <div class="desktop-2col">
+      <div class="card hero-card">
+        <div class="hero-top">
+          <div>
+            <div class="card-title" style="color:rgba(245,166,35,0.6);">Monthly cost</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="hero-amount" id="hero-cost">0.00</div>
+              <div style="font-size:16px;font-weight:500;color:var(--text2);">AED</div>
+            </div>
+            <div class="hero-unit"><span id="hero-month" style="font-family:'DM Mono',monospace;font-size:12px;"></span></div>
           </div>
-          <div class="hero-unit"><span id="hero-month" style="font-family:'DM Mono',monospace;font-size:12px;"></span></div>
+          <div id="hero-change"></div>
         </div>
-        <div id="hero-change"></div>
+        <div id="monthly-cost-chart"></div>
       </div>
-      <div id="monthly-cost-chart"></div>
-    </div>
 
-    <!-- 2. THIS MONTH -->
-    <div class="card highlight-card">
-      <div class="highlight-header">
-        <div class="card-title" style="color:var(--accent);margin-bottom:0;">This month</div>
-        <div id="sum-thismonth-label" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+      <div class="card highlight-card">
+        <div class="highlight-header">
+          <div class="card-title" style="color:var(--accent);margin-bottom:0;">This month</div>
+          <div id="sum-thismonth-label" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+        </div>
+        <div id="sum-thismonth"></div>
       </div>
-      <div id="sum-thismonth"></div>
     </div>
 
     <!-- 3. STATS GRID -->
@@ -190,16 +202,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- 5. MONTHLY kWh CHART -->
-    <div class="card">
-      <div class="card-title">Monthly kWh charged</div>
-      <div id="chart-kwh"></div>
-    </div>
-
-    <!-- 6. ALL MONTHS TABLE -->
-    <div class="card">
-      <div class="card-title">All months breakdown</div>
-      <div id="monthly-table"></div>
+    <!-- 5+6. kWh CHART + ALL MONTHS TABLE (side by side on desktop) -->
+    <div class="desktop-2col">
+      <div class="card">
+        <div class="card-title">Monthly kWh charged</div>
+        <div id="chart-kwh"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">All months breakdown</div>
+        <div id="monthly-table"></div>
+      </div>
     </div>
 
     <!-- 7. LOGS (collapsible) -->
