@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EV Summary">
+<title>EV Charge Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e14;--surface:#111720;--surface2:#161e2a;--surface3:#1c2535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eef5;--text2:#7a8fa6;--text3:#4a5c70;--accent:#00e5a0;--accent-dim:rgba(0,229,160,0.12);--accent-dim2:rgba(0,229,160,0.06);--warn:#f5a623;--danger:#e05252;--info:#4a90d9;--r:14px;--rs:10px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,14,20,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-icon{width:34px;height:34px;border-radius:9px;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.nav-title{font-size:15px;font-weight:600;letter-spacing:-0.3px;line-height:1.2;}
+.nav-sub{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+.page{padding:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.card-title{font-size:12px;color:var(--text3);margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px;}
+.stat-label{font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace;}
+.stat-value{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px;}
+.stat-unit{font-size:11px;color:var(--text2);font-weight:400;margin-left:2px;}
+.stat-accent .stat-value{color:var(--accent);}
+.chart-bar-group{margin-bottom:14px;}
+.chart-month{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;}
+.chart-bar-track{height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:100px;background:var(--accent);transition:width 0.5s ease;}
+.chart-bar-fill.cost{background:var(--warn);}
+.sum-highlight-card{background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,229,160,0.02));border-color:rgba(0,229,160,0.22);}
+.sum-highlight-header{display:flex;align-items:center;justify-content:space-between;}
+.sum-stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.sum-stat3-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
+.sum-stat3-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
+.sum-stat3-change{font-size:11px;margin-top:4px;}
+.btn{width:100%;padding:14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;letter-spacing:-0.2px;}
+.btn-primary{background:var(--accent);color:#0a0e14;}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);margin-top:8px;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:13px;padding:10px;}
+.form-input{width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
+.form-input:focus{border-color:rgba(0,229,160,0.5);}
+.form-input::placeholder{color:var(--text3);}
+.form-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+.form-group{margin-bottom:12px;}
+.connect-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;}
+.connect-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+.connect-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:11px 20px;font-size:14px;font-weight:500;z-index:300;transition:transform 0.28s ease;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{color:var(--accent);border-color:rgba(0,229,160,0.3);}
+.toast.error{color:var(--danger);border-color:rgba(224,82,82,0.3);}
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-icon">⚡</div>
+    <div>
+      <div class="nav-title">EV Charge Summary</div>
+      <div class="nav-sub">Deepal S05 REEV · 27.28 kWh</div>
+    </div>
+  </div>
+  <button onclick="loadData()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);padding:6px 14px;border-radius:100px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">↺ Refresh</button>
+</nav>
+
+<div class="page">
+
+  <!-- Connect prompt (shown only when no credentials) -->
+  <div id="connect-section" style="display:none;">
+    <div class="connect-card">
+      <div class="connect-title">Connect to data</div>
+      <div class="connect-sub">Enter the JSONBin credentials to load charging data.</div>
+      <div class="form-group">
+        <label class="form-label">Bin ID</label>
+        <input type="text" class="form-input" id="input-bin" placeholder="e.g. 64a1b2c3d4e5f6...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input type="password" class="form-input" id="input-key" placeholder="$2b$10$...">
+      </div>
+      <button class="btn btn-primary" onclick="saveCredentials()">Connect</button>
+    </div>
+  </div>
+
+  <!-- Summary content -->
+  <div id="summary-section" style="display:none;">
+
+    <!-- This month highlight -->
+    <div class="card sum-highlight-card" style="margin-bottom:12px;">
+      <div class="sum-highlight-header">
+        <div class="card-title" style="color:var(--accent);margin-bottom:0;">This month</div>
+        <div id="sum-thismonth-label" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+      </div>
+      <div id="sum-thismonth" style="margin-top:14px;"></div>
+    </div>
+
+    <!-- Stats grid -->
+    <div class="stat-grid">
+      <div class="stat-card stat-accent">
+        <div class="stat-label">Total kWh</div>
+        <div class="stat-value" id="sum-kwh">0<span class="stat-unit">kWh</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total cost</div>
+        <div class="stat-value" id="sum-cost">0<span class="stat-unit">AED</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sessions</div>
+        <div class="stat-value" id="sum-sessions">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg/session</div>
+        <div class="stat-value" id="sum-avg">0<span class="stat-unit">AED</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg kWh</div>
+        <div class="stat-value" id="sum-avg-kwh">0<span class="stat-unit">kWh</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Months tracked</div>
+        <div class="stat-value" id="sum-months">0</div>
+      </div>
+    </div>
+
+    <!-- Monthly kWh chart -->
+    <div class="card">
+      <div class="card-title">Monthly kWh charged</div>
+      <div id="chart-kwh"></div>
+    </div>
+
+    <!-- Monthly cost chart -->
+    <div class="card">
+      <div class="card-title">Monthly cost (AED)</div>
+      <div id="chart-cost"></div>
+    </div>
+
+    <!-- Location breakdown -->
+    <div class="card">
+      <div class="card-title">By location</div>
+      <div id="sum-locations"></div>
+    </div>
+
+    <!-- Full monthly breakdown table -->
+    <div class="card">
+      <div class="card-title">All months breakdown</div>
+      <div id="monthly-table"></div>
+    </div>
+
+    <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:4px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">⬇ Export to CSV</button>
+    <button class="btn btn-ghost" style="margin-top:8px;font-size:12px;color:var(--text3);" onclick="disconnect()">Disconnect</button>
+  </div>
+
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(10,14,20,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <div style="font-size:14px;color:var(--text2);font-weight:500;">Loading...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BATTERY_KWH = 27.28;
+let sessions = [];
+let binId = localStorage.getItem('ev_bin_id') || '';
+let binKey = localStorage.getItem('ev_bin_key') || '';
+
+async function init() {
+  if (binId && binKey) {
+    showSummary();
+    await loadData();
+  } else {
+    document.getElementById('connect-section').style.display = 'block';
+  }
+}
+
+function showSummary() {
+  document.getElementById('connect-section').style.display = 'none';
+  document.getElementById('summary-section').style.display = 'block';
+}
+
+async function saveCredentials() {
+  const key = document.getElementById('input-key').value.trim();
+  const bin = document.getElementById('input-bin').value.trim();
+  if (!key || !bin) { showToast('Enter both fields', 'error'); return; }
+  binKey = key; binId = bin;
+  localStorage.setItem('ev_bin_key', key);
+  localStorage.setItem('ev_bin_id', bin);
+  showSummary();
+  await loadData();
+}
+
+function disconnect() {
+  localStorage.removeItem('ev_bin_id');
+  localStorage.removeItem('ev_bin_key');
+  binId = ''; binKey = '';
+  sessions = [];
+  document.getElementById('summary-section').style.display = 'none';
+  document.getElementById('connect-section').style.display = 'block';
+}
+
+async function loadData() {
+  showLoading();
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
+      headers: { 'X-Master-Key': binKey }
+    });
+    if (!res.ok) throw new Error('Load failed: ' + res.status);
+    const data = await res.json();
+    const raw = Array.isArray(data.record?.sessions) ? data.record.sessions : [];
+    sessions = raw.map((s, i) => ({
+      id: s.id || ('s' + i),
+      date: normalizeDate(s.date),
+      time: String(s.time || '00:00').slice(0, 5),
+      location: s.location || 'Unknown',
+      before: Number(s.before) || 0,
+      after: Number(s.after) || 0,
+      kwh: Number(s.kwh) || 0,
+      rate: Number(s.rate) || 0.399,
+      cost: Number(s.cost) || 0,
+      notes: s.notes || ''
+    }));
+    sessions.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+    renderSummary();
+  } catch (e) {
+    showToast('Load failed — check credentials', 'error');
+    console.error(e);
+  }
+  hideLoading();
+}
+
+function renderSummary() {
+  const tk = sessions.reduce((a, s) => a + Number(s.kwh), 0);
+  const tc = sessions.reduce((a, s) => a + Number(s.cost), 0);
+  const n = sessions.length;
+
+  document.getElementById('sum-kwh').innerHTML = tk.toFixed(1) + '<span class="stat-unit">kWh</span>';
+  document.getElementById('sum-cost').innerHTML = tc.toFixed(2) + '<span class="stat-unit">AED</span>';
+  document.getElementById('sum-sessions').textContent = n;
+  document.getElementById('sum-avg').innerHTML = (n ? (tc / n).toFixed(2) : '0') + '<span class="stat-unit">AED</span>';
+  document.getElementById('sum-avg-kwh').innerHTML = (n ? (tk / n).toFixed(2) : '0') + '<span class="stat-unit">kWh</span>';
+
+  const months = {};
+  sessions.forEach(s => {
+    const m = normalizeDate(s.date).slice(0, 7);
+    if (!months[m]) months[m] = { kwh: 0, cost: 0, sessions: 0 };
+    months[m].kwh += Number(s.kwh);
+    months[m].cost += Number(s.cost);
+    months[m].sessions++;
+  });
+  const allKeys = Object.keys(months).sort();
+  document.getElementById('sum-months').textContent = allKeys.length;
+
+  // This month vs last month
+  const now = new Date();
+  const thisMonthKey = now.toISOString().slice(0, 7);
+  const lastMDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthKey = lastMDate.toISOString().slice(0, 7);
+  const thisM = months[thisMonthKey] || { kwh: 0, cost: 0, sessions: 0 };
+  const lastM = months[lastMonthKey] || null;
+
+  document.getElementById('sum-thismonth-label').textContent = formatMonth(thisMonthKey);
+
+  let compareHtml = '';
+  if (lastM && lastM.cost > 0) {
+    const pct = ((thisM.cost - lastM.cost) / lastM.cost * 100).toFixed(0);
+    const dir = parseFloat(pct) >= 0 ? '+' : '';
+    const col = parseFloat(pct) > 0 ? 'var(--warn)' : 'var(--accent)';
+    compareHtml = `<div class="sum-stat3-change" style="color:${col};">${dir}${pct}% vs ${formatMonth(lastMonthKey)}</div>`;
+  }
+
+  const tmEl = document.getElementById('sum-thismonth');
+  if (!n) {
+    tmEl.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:8px 0;">No data yet</div>';
+  } else {
+    tmEl.innerHTML = `
+      <div class="sum-stat3">
+        <div>
+          <div class="sum-stat3-label">Sessions</div>
+          <div class="sum-stat3-val">${thisM.sessions}</div>
+        </div>
+        <div>
+          <div class="sum-stat3-label">kWh</div>
+          <div class="sum-stat3-val" style="color:var(--accent);">${thisM.kwh.toFixed(1)}</div>
+        </div>
+        <div>
+          <div class="sum-stat3-label">Cost AED</div>
+          <div class="sum-stat3-val" style="color:var(--warn);">${thisM.cost.toFixed(2)}</div>
+          ${compareHtml}
+        </div>
+      </div>`;
+  }
+
+  // Charts: last 12 months
+  const chartKeys = allKeys.slice(-12);
+  const mxK = Math.max(...chartKeys.map(k => months[k].kwh), 1);
+  const mxC = Math.max(...chartKeys.map(k => months[k].cost), 1);
+
+  document.getElementById('chart-kwh').innerHTML = chartKeys.length ? chartKeys.map(k => `
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh / mxK * 100).toFixed(1)}%"></div></div>
+    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  document.getElementById('chart-cost').innerHTML = chartKeys.length ? chartKeys.map(k => `
+    <div class="chart-bar-group">
+      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost / mxC * 100).toFixed(1)}%"></div></div>
+    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  // Location breakdown
+  const locs = {};
+  sessions.forEach(s => {
+    const l = (s.location || 'Unknown').trim();
+    if (!locs[l]) locs[l] = { kwh: 0, cost: 0, sessions: 0 };
+    locs[l].kwh += Number(s.kwh);
+    locs[l].cost += Number(s.cost);
+    locs[l].sessions++;
+  });
+  const locKeys = Object.keys(locs).sort((a, b) => locs[b].sessions - locs[a].sessions);
+  const mxLS = Math.max(...locKeys.map(k => locs[k].sessions), 1);
+  const locEl = document.getElementById('sum-locations');
+  locEl.innerHTML = locKeys.length ? locKeys.map(k => `
+    <div class="chart-bar-group">
+      <div class="chart-month">
+        <span>${k}</span>
+        <span style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${locs[k].sessions} · ${locs[k].cost.toFixed(2)} AED</span>
+      </div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(locs[k].sessions / mxLS * 100).toFixed(1)}%;background:var(--info);"></div></div>
+    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+
+  // Monthly table
+  const tableKeys = [...allKeys].reverse();
+  const tableEl = document.getElementById('monthly-table');
+  if (!tableKeys.length) {
+    tableEl.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">No data yet</div>';
+    return;
+  }
+  const totalRow = `
+    <tr style="border-top:2px solid var(--border2);font-weight:600;">
+      <td style="padding:10px 8px;color:var(--text);">All time</td>
+      <td style="padding:10px 8px;text-align:center;color:var(--text);">${n}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${tk.toFixed(1)}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${tc.toFixed(2)}</td>
+      <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${n ? (tc / n).toFixed(2) : '-'}</td>
+    </tr>`;
+  tableEl.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border2);">
+          <th style="padding:8px;text-align:left;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Month</th>
+          <th style="padding:8px;text-align:center;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Sessions</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">kWh</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Cost AED</th>
+          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Avg AED</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableKeys.map((k, i) => `
+          <tr style="border-bottom:1px solid var(--border);background:${i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'};">
+            <td style="padding:10px 8px;color:var(--text);font-weight:500;">${formatMonth(k)}</td>
+            <td style="padding:10px 8px;text-align:center;color:var(--text2);">${months[k].sessions}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${months[k].kwh.toFixed(1)}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${months[k].cost.toFixed(2)}</td>
+            <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${(months[k].cost / months[k].sessions).toFixed(2)}</td>
+          </tr>`).join('')}
+        ${totalRow}
+      </tbody>
+    </table>`;
+}
+
+function exportCSV() {
+  if (!sessions.length) { showToast('No data to export', 'error'); return; }
+  const headers = ['Date', 'Time', 'Location', 'Before %', 'After %', 'kWh', 'Rate AED/kWh', 'Cost AED', 'Notes'];
+  const rows = sessions.map(s => [s.date, s.time, s.location, s.before, s.after, s.kwh, s.rate, s.cost, s.notes || '']);
+  const tk = sessions.reduce((a, s) => a + Number(s.kwh), 0).toFixed(2);
+  const tc = sessions.reduce((a, s) => a + Number(s.cost), 0).toFixed(2);
+  rows.push([], ['TOTAL', '', '', '', '', tk, '', tc, '']);
+  const csv = [headers, ...rows].map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'EV-Charging-' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exported ✓', 'success');
+}
+
+function normalizeDate(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (s.includes('T')) return s.split('T')[0];
+  if (/^\d{5,}$/.test(s)) { const d = new Date((parseFloat(s) - 25569) * 86400000); return d.toISOString().split('T')[0]; }
+  try { const d = new Date(s); if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); } catch (e) {}
+  return s;
+}
+function formatMonth(m) {
+  if (!m || !m.match(/^\d{4}-\d{2}$/)) return m;
+  return new Date(m + '-01').toLocaleDateString('en-AE', { month: 'short', year: 'numeric' });
+}
+function showLoading() { document.getElementById('loading-overlay').style.display = 'flex'; }
+function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+init();
+</script>
+</body>
+</html>
