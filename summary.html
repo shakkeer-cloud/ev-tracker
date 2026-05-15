@@ -10,7 +10,7 @@
 <title>EV Charge Summary</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0e14;--surface:#111720;--surface2:#161e2a;--surface3:#1c2535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eef5;--text2:#7a8fa6;--text3:#4a5c70;--accent:#00e5a0;--accent-dim:rgba(0,229,160,0.12);--accent-dim2:rgba(0,229,160,0.06);--warn:#f5a623;--danger:#e05252;--info:#4a90d9;--r:14px;--rs:10px;}
+:root{--bg:#0a0e14;--surface:#111720;--surface2:#161e2a;--surface3:#1c2535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eef5;--text2:#7a8fa6;--text3:#4a5c70;--accent:#00e5a0;--accent-dim:rgba(0,229,160,0.12);--warn:#f5a623;--danger:#e05252;--info:#4a90d9;--r:14px;--rs:10px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 .nav{position:sticky;top:0;z-index:100;background:rgba(10,14,20,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -20,36 +20,67 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-sub{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
 .page{padding:16px;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
-.card-title{font-size:12px;color:var(--text3);margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;}
+.card-title{font-size:11px;color:var(--text3);margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.7px;}
+/* Hero */
+.hero-card{background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(245,166,35,0.03));border-color:rgba(245,166,35,0.25);}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
+.hero-amount{font-size:46px;font-weight:600;font-family:'DM Mono',monospace;color:var(--warn);letter-spacing:-2px;line-height:1;}
+.hero-unit{font-size:14px;color:var(--text2);margin-top:4px;}
+.hero-badge{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:100px;font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
+.hero-badge.up{background:rgba(245,166,35,0.15);color:var(--warn);}
+.hero-badge.down{background:rgba(0,229,160,0.12);color:var(--accent);}
+.hero-badge.neutral{background:var(--surface2);color:var(--text3);}
+/* This month */
+.highlight-card{background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,229,160,0.02));border-color:rgba(0,229,160,0.22);}
+.highlight-header{display:flex;align-items:center;justify-content:space-between;}
+.sum-stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-top:14px;}
+.sum-stat3-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
+.sum-stat3-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
+.sum-stat3-change{font-size:11px;margin-top:4px;}
+/* Stats grid */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px;}
 .stat-label{font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace;}
 .stat-value{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px;}
 .stat-unit{font-size:11px;color:var(--text2);font-weight:400;margin-left:2px;}
 .stat-accent .stat-value{color:var(--accent);}
-.chart-bar-group{margin-bottom:14px;}
-.chart-month{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;}
-.chart-bar-track{height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;}
-.chart-bar-fill{height:100%;border-radius:100px;background:var(--accent);transition:width 0.5s ease;}
-.chart-bar-fill.cost{background:var(--warn);}
-.sum-highlight-card{background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,229,160,0.02));border-color:rgba(0,229,160,0.22);}
-.sum-highlight-header{display:flex;align-items:center;justify-content:space-between;}
-.sum-stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
-.sum-stat3-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
-.sum-stat3-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
-.sum-stat3-change{font-size:11px;margin-top:4px;}
-.btn{width:100%;padding:14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;letter-spacing:-0.2px;}
-.btn-primary{background:var(--accent);color:#0a0e14;}
-.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);margin-top:8px;}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:13px;padding:10px;}
+/* Donut grid */
+.donut-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.donut-grid .card{margin-bottom:0;}
+/* Bar charts */
+.chart-bar-group{margin-bottom:12px;}
+.chart-bar-group:last-child{margin-bottom:0;}
+.chart-month{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;}
+.chart-bar-track{height:9px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:100px;transition:width 0.6s ease;}
+/* Connect */
+.connect-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;}
+.connect-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+.connect-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
 .form-input{width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
 .form-input:focus{border-color:rgba(0,229,160,0.5);}
 .form-input::placeholder{color:var(--text3);}
 .form-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
 .form-group{margin-bottom:12px;}
-.connect-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;}
-.connect-title{font-size:16px;font-weight:600;margin-bottom:6px;}
-.connect-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
+/* Buttons */
+.btn{width:100%;padding:14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;letter-spacing:-0.2px;}
+.btn-primary{background:var(--accent);color:#0a0e14;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:13px;padding:10px;}
+/* Logs toggle */
+.log-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;-webkit-user-select:none;}
+.log-toggle-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.7px;}
+.log-toggle-btn{font-size:12px;color:var(--accent);border:1px solid rgba(0,229,160,0.3);background:var(--accent-dim);padding:5px 12px;border-radius:100px;font-weight:500;transition:all 0.15s;}
+/* Filter pills */
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.filter-pill{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.filter-pill.active{background:var(--accent-dim);border-color:rgba(0,229,160,0.4);color:var(--accent);}
+/* Log table */
+.log-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:14px;}
+.log-tbl th{padding:7px 8px;text-align:left;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;border-bottom:1px solid var(--border2);}
+.log-tbl td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.log-tbl tr:last-child td{border-bottom:none;}
+.log-tbl tr:hover td{background:rgba(255,255,255,0.02);}
+/* Toast */
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:11px 20px;font-size:14px;font-weight:500;z-index:300;transition:transform 0.28s ease;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast.success{color:var(--accent);border-color:rgba(0,229,160,0.3);}
@@ -74,11 +105,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="page">
 
-  <!-- Connect prompt (shown only when no credentials) -->
+  <!-- Connect prompt -->
   <div id="connect-section" style="display:none;">
     <div class="connect-card">
       <div class="connect-title">Connect to data</div>
-      <div class="connect-sub">Enter your JSONBin Bin ID and a <strong>read-only Access Key</strong> (not your Master Key). Create one at jsonbin.io → profile → Access Keys.</div>
+      <div class="connect-sub">Enter your JSONBin Bin ID and a <strong>read-only Access Key</strong>. Create one at jsonbin.io → profile → Access Keys.</div>
       <div class="form-group">
         <label class="form-label">Bin ID</label>
         <input type="text" class="form-input" id="input-bin" placeholder="e.g. 64a1b2c3d4e5f6...">
@@ -94,16 +125,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <!-- Summary content -->
   <div id="summary-section" style="display:none;">
 
-    <!-- This month highlight -->
-    <div class="card sum-highlight-card" style="margin-bottom:12px;">
-      <div class="sum-highlight-header">
+    <!-- 1. MONTHLY COST HERO -->
+    <div class="card hero-card">
+      <div class="hero-top">
+        <div>
+          <div class="card-title" style="color:rgba(245,166,35,0.6);">Monthly cost</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <div class="hero-amount" id="hero-cost">0.00</div>
+            <div style="font-size:16px;font-weight:500;color:var(--text2);">AED</div>
+          </div>
+          <div class="hero-unit"><span id="hero-month" style="font-family:'DM Mono',monospace;font-size:12px;"></span></div>
+        </div>
+        <div id="hero-change"></div>
+      </div>
+      <div id="monthly-cost-chart"></div>
+    </div>
+
+    <!-- 2. THIS MONTH -->
+    <div class="card highlight-card">
+      <div class="highlight-header">
         <div class="card-title" style="color:var(--accent);margin-bottom:0;">This month</div>
         <div id="sum-thismonth-label" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
       </div>
-      <div id="sum-thismonth" style="margin-top:14px;"></div>
+      <div id="sum-thismonth"></div>
     </div>
 
-    <!-- Stats grid -->
+    <!-- 3. STATS GRID -->
     <div class="stat-grid">
       <div class="stat-card stat-accent">
         <div class="stat-label">Total kWh</div>
@@ -131,28 +178,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- Monthly kWh chart -->
+    <!-- 4. DONUT CHARTS -->
+    <div class="donut-grid">
+      <div class="card">
+        <div class="card-title">Cost by month</div>
+        <div id="donut-months" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sessions by weekday</div>
+        <div id="donut-weekday" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- 5. MONTHLY kWh CHART -->
     <div class="card">
       <div class="card-title">Monthly kWh charged</div>
       <div id="chart-kwh"></div>
     </div>
 
-    <!-- Monthly cost chart -->
-    <div class="card">
-      <div class="card-title">Monthly cost (AED)</div>
-      <div id="chart-cost"></div>
-    </div>
-
-    <!-- Location breakdown -->
-    <div class="card">
-      <div class="card-title">By location</div>
-      <div id="sum-locations"></div>
-    </div>
-
-    <!-- Full monthly breakdown table -->
+    <!-- 6. ALL MONTHS TABLE -->
     <div class="card">
       <div class="card-title">All months breakdown</div>
       <div id="monthly-table"></div>
+    </div>
+
+    <!-- 7. LOGS (collapsible) -->
+    <div class="card">
+      <div class="log-toggle" onclick="toggleLogs()">
+        <span class="log-toggle-label">Session log</span>
+        <span class="log-toggle-btn" id="log-toggle-btn">Show sessions ▼</span>
+      </div>
+      <div id="logs-section" style="display:none;">
+        <div class="filter-pills" id="log-filter"></div>
+        <div id="logs-table"></div>
+      </div>
     </div>
 
     <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:4px;font-size:13px;color:var(--accent);border-color:rgba(0,229,160,0.3);">⬇ Export to CSV</button>
@@ -166,22 +225,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
   <div style="font-size:14px;color:var(--text2);font-weight:500;">Loading...</div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const BATTERY_KWH = 27.28;
+const PIE_COLORS = ['#00e5a0','#f5a623','#4a90d9','#e05252','#9b8fd4','#38c9a0','#f07d3e','#56b4d3'];
 let sessions = [];
 let binId = localStorage.getItem('ev_summary_bin_id') || '';
 let binKey = localStorage.getItem('ev_summary_access_key') || '';
+let logsVisible = false;
+let currentLogFilter = 'all';
 
+// ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  if (binId && binKey) {
-    showSummary();
-    await loadData();
-  } else {
-    document.getElementById('connect-section').style.display = 'block';
-  }
+  if (binId && binKey) { showSummary(); await loadData(); }
+  else { document.getElementById('connect-section').style.display = 'block'; }
 }
 
 function showSummary() {
@@ -203,12 +261,12 @@ async function saveCredentials() {
 function disconnect() {
   localStorage.removeItem('ev_summary_bin_id');
   localStorage.removeItem('ev_summary_access_key');
-  binId = ''; binKey = '';
-  sessions = [];
+  binId = ''; binKey = ''; sessions = [];
   document.getElementById('summary-section').style.display = 'none';
   document.getElementById('connect-section').style.display = 'block';
 }
 
+// ── DATA ──────────────────────────────────────────────────────────────────────
 async function loadData() {
   showLoading();
   try {
@@ -231,7 +289,7 @@ async function loadData() {
       notes: s.notes || ''
     }));
     sessions.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
-    renderSummary();
+    renderAll();
   } catch (e) {
     showToast('Load failed — check credentials', 'error');
     console.error(e);
@@ -239,17 +297,20 @@ async function loadData() {
   hideLoading();
 }
 
-function renderSummary() {
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+function renderAll() {
   const tk = sessions.reduce((a, s) => a + Number(s.kwh), 0);
   const tc = sessions.reduce((a, s) => a + Number(s.cost), 0);
   const n = sessions.length;
 
+  // Stats
   document.getElementById('sum-kwh').innerHTML = tk.toFixed(1) + '<span class="stat-unit">kWh</span>';
   document.getElementById('sum-cost').innerHTML = tc.toFixed(2) + '<span class="stat-unit">AED</span>';
   document.getElementById('sum-sessions').textContent = n;
   document.getElementById('sum-avg').innerHTML = (n ? (tc / n).toFixed(2) : '0') + '<span class="stat-unit">AED</span>';
   document.getElementById('sum-avg-kwh').innerHTML = (n ? (tk / n).toFixed(2) : '0') + '<span class="stat-unit">kWh</span>';
 
+  // Build months map
   const months = {};
   sessions.forEach(s => {
     const m = normalizeDate(s.date).slice(0, 7);
@@ -261,16 +322,58 @@ function renderSummary() {
   const allKeys = Object.keys(months).sort();
   document.getElementById('sum-months').textContent = allKeys.length;
 
-  // This month vs last month
   const now = new Date();
   const thisMonthKey = now.toISOString().slice(0, 7);
-  const lastMDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthKey = lastMDate.toISOString().slice(0, 7);
+  const lastMonthKey = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 7);
   const thisM = months[thisMonthKey] || { kwh: 0, cost: 0, sessions: 0 };
   const lastM = months[lastMonthKey] || null;
 
-  document.getElementById('sum-thismonth-label').textContent = formatMonth(thisMonthKey);
+  renderHero(thisM, lastM, thisMonthKey, months, allKeys);
+  renderThisMonth(thisM, lastM, lastMonthKey, thisMonthKey, n);
+  renderDonuts(months, allKeys, tc);
+  renderKwhChart(months, allKeys, thisMonthKey);
+  renderMonthlyTable(months, allKeys, tk, tc, n);
+  if (logsVisible) renderLogs();
+}
 
+// ── HERO (monthly cost) ───────────────────────────────────────────────────────
+function renderHero(thisM, lastM, thisMonthKey, months, allKeys) {
+  document.getElementById('hero-cost').textContent = thisM.cost.toFixed(2);
+  document.getElementById('hero-month').textContent = formatMonth(thisMonthKey);
+
+  // Change badge
+  const changeEl = document.getElementById('hero-change');
+  if (lastM && lastM.cost > 0) {
+    const pct = ((thisM.cost - lastM.cost) / lastM.cost * 100).toFixed(0);
+    const isUp = parseFloat(pct) > 0;
+    const dir = isUp ? '↑' : '↓';
+    const cls = isUp ? 'up' : 'down';
+    changeEl.innerHTML = `<div class="hero-badge ${cls}">${dir} ${Math.abs(pct)}%<br><span style="font-size:10px;opacity:0.7;">vs last month</span></div>`;
+  } else {
+    changeEl.innerHTML = '';
+  }
+
+  // Monthly cost bar chart — newest first, current highlighted
+  const keys = [...allKeys].reverse();
+  const maxCost = Math.max(...keys.map(k => months[k].cost), 1);
+  document.getElementById('monthly-cost-chart').innerHTML = keys.length ? keys.map(k => {
+    const isCurrent = k === thisMonthKey;
+    return `
+      <div class="chart-bar-group">
+        <div class="chart-month">
+          <span style="color:${isCurrent ? 'var(--text)' : 'var(--text2)'};font-weight:${isCurrent ? '600' : '400'};">${formatMonth(k)}${isCurrent ? ' <span style="font-size:10px;color:var(--warn);background:rgba(245,166,35,0.12);padding:2px 6px;border-radius:4px;">now</span>' : ''}</span>
+          <span style="font-family:'DM Mono',monospace;color:${isCurrent ? 'var(--warn)' : 'var(--text2)'};">${months[k].cost.toFixed(2)} AED</span>
+        </div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${(months[k].cost / maxCost * 100).toFixed(1)}%;background:${isCurrent ? 'var(--warn)' : 'rgba(245,166,35,0.35)'};"></div>
+        </div>
+      </div>`;
+  }).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+}
+
+// ── THIS MONTH ────────────────────────────────────────────────────────────────
+function renderThisMonth(thisM, lastM, lastMonthKey, thisMonthKey, n) {
+  document.getElementById('sum-thismonth-label').textContent = formatMonth(thisMonthKey);
   let compareHtml = '';
   if (lastM && lastM.cost > 0) {
     const pct = ((thisM.cost - lastM.cost) / lastM.cost * 100).toFixed(0);
@@ -278,10 +381,9 @@ function renderSummary() {
     const col = parseFloat(pct) > 0 ? 'var(--warn)' : 'var(--accent)';
     compareHtml = `<div class="sum-stat3-change" style="color:${col};">${dir}${pct}% vs ${formatMonth(lastMonthKey)}</div>`;
   }
-
   const tmEl = document.getElementById('sum-thismonth');
   if (!n) {
-    tmEl.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:8px 0;">No data yet</div>';
+    tmEl.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0;">No data yet</div>';
   } else {
     tmEl.innerHTML = `
       <div class="sum-stat3">
@@ -300,46 +402,89 @@ function renderSummary() {
         </div>
       </div>`;
   }
+}
 
-  // Charts: last 12 months
-  const chartKeys = allKeys.slice(-12);
-  const mxK = Math.max(...chartKeys.map(k => months[k].kwh), 1);
-  const mxC = Math.max(...chartKeys.map(k => months[k].cost), 1);
+// ── DONUT CHARTS ──────────────────────────────────────────────────────────────
+function renderDonuts(months, allKeys, totalCost) {
+  // Cost by month
+  const sorted = [...allKeys].sort((a, b) => months[b].cost - months[a].cost);
+  const top = sorted.slice(0, 6);
+  const rest = sorted.slice(6);
+  const monthData = top.map((k, i) => ({ label: formatMonth(k), value: months[k].cost, color: PIE_COLORS[i % PIE_COLORS.length] }));
+  if (rest.length) {
+    const otherCost = rest.reduce((a, k) => a + months[k].cost, 0);
+    monthData.push({ label: 'Other', value: otherCost, color: 'var(--surface3)' });
+  }
+  renderDonut(document.getElementById('donut-months'), monthData);
 
-  document.getElementById('chart-kwh').innerHTML = chartKeys.length ? chartKeys.map(k => `
-    <div class="chart-bar-group">
-      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div>
-      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh / mxK * 100).toFixed(1)}%"></div></div>
-    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
-
-  document.getElementById('chart-cost').innerHTML = chartKeys.length ? chartKeys.map(k => `
-    <div class="chart-bar-group">
-      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div>
-      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost / mxC * 100).toFixed(1)}%"></div></div>
-    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
-
-  // Location breakdown
-  const locs = {};
+  // Sessions by weekday
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_COLORS = ['#e05252','#4a90d9','#f5a623','#00e5a0','#9b8fd4','#f07d3e','#e8638a'];
+  const dayCounts = new Array(7).fill(0);
   sessions.forEach(s => {
-    const l = (s.location || 'Unknown').trim();
-    if (!locs[l]) locs[l] = { kwh: 0, cost: 0, sessions: 0 };
-    locs[l].kwh += Number(s.kwh);
-    locs[l].cost += Number(s.cost);
-    locs[l].sessions++;
+    const nd = normalizeDate(s.date);
+    if (nd) dayCounts[new Date(nd + 'T00:00:00').getDay()]++;
   });
-  const locKeys = Object.keys(locs).sort((a, b) => locs[b].sessions - locs[a].sessions);
-  const mxLS = Math.max(...locKeys.map(k => locs[k].sessions), 1);
-  const locEl = document.getElementById('sum-locations');
-  locEl.innerHTML = locKeys.length ? locKeys.map(k => `
-    <div class="chart-bar-group">
-      <div class="chart-month">
-        <span>${k}</span>
-        <span style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${locs[k].sessions} · ${locs[k].cost.toFixed(2)} AED</span>
-      </div>
-      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(locs[k].sessions / mxLS * 100).toFixed(1)}%;background:var(--info);"></div></div>
-    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+  const weekdayData = DAYS
+    .map((d, i) => ({ label: d, value: dayCounts[i], color: DAY_COLORS[i] }))
+    .filter(d => d.value > 0);
+  renderDonut(document.getElementById('donut-weekday'), weekdayData);
+}
 
-  // Monthly table
+function renderDonut(el, data) {
+  const total = data.reduce((a, d) => a + d.value, 0);
+  if (!total || !data.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px 0;">No data</div>';
+    return;
+  }
+  const size = 120, cx = 60, cy = 60, r = 50, ri = 30;
+  let angle = -Math.PI / 2;
+  const slices = data.map(d => {
+    const sweep = (d.value / total) * Math.PI * 2;
+    const end = angle + sweep;
+    const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(end), y2 = cy + r * Math.sin(end);
+    const ix1 = cx + ri * Math.cos(angle), iy1 = cy + ri * Math.sin(angle);
+    const ix2 = cx + ri * Math.cos(end), iy2 = cy + ri * Math.sin(end);
+    const large = sweep > Math.PI ? 1 : 0;
+    const path = `M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} L${ix2.toFixed(1)},${iy2.toFixed(1)} A${ri},${ri} 0 ${large} 0 ${ix1.toFixed(1)},${iy1.toFixed(1)} Z`;
+    angle = end;
+    return `<path d="${path}" fill="${d.color}" stroke="var(--surface)" stroke-width="1.5"/>`;
+  }).join('');
+
+  const legend = data.map(d => `
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+      <div style="width:7px;height:7px;border-radius:2px;background:${d.color};flex-shrink:0;"></div>
+      <div style="font-size:10px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.label}</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);">${((d.value / total) * 100).toFixed(0)}%</div>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0;">${slices}</svg>
+    <div style="flex:1;">${legend}</div>`;
+}
+
+// ── kWh CHART ─────────────────────────────────────────────────────────────────
+function renderKwhChart(months, allKeys, thisMonthKey) {
+  const keys = [...allKeys].slice(-12).reverse(); // newest first
+  const mxK = Math.max(...keys.map(k => months[k].kwh), 1);
+  document.getElementById('chart-kwh').innerHTML = keys.length ? keys.map(k => {
+    const isCurrent = k === thisMonthKey;
+    return `
+      <div class="chart-bar-group">
+        <div class="chart-month">
+          <span style="color:${isCurrent ? 'var(--text)' : 'var(--text2)'};font-weight:${isCurrent ? '600' : '400'};">${formatMonth(k)}</span>
+          <span style="font-family:'DM Mono',monospace;color:${isCurrent ? 'var(--accent)' : 'var(--text2)'};">${months[k].kwh.toFixed(1)} kWh</span>
+        </div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${(months[k].kwh / mxK * 100).toFixed(1)}%;background:${isCurrent ? 'var(--accent)' : 'rgba(0,229,160,0.4)'};"></div>
+        </div>
+      </div>`;
+  }).join('') : '<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+}
+
+// ── MONTHLY TABLE ─────────────────────────────────────────────────────────────
+function renderMonthlyTable(months, allKeys, tk, tc, n) {
   const tableKeys = [...allKeys].reverse();
   const tableEl = document.getElementById('monthly-table');
   if (!tableKeys.length) {
@@ -354,21 +499,20 @@ function renderSummary() {
       <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${tc.toFixed(2)}</td>
       <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${n ? (tc / n).toFixed(2) : '-'}</td>
     </tr>`;
+  const now = new Date().toISOString().slice(0, 7);
   tableEl.innerHTML = `
     <table style="width:100%;border-collapse:collapse;font-size:12px;">
-      <thead>
-        <tr style="border-bottom:1px solid var(--border2);">
-          <th style="padding:8px;text-align:left;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Month</th>
-          <th style="padding:8px;text-align:center;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Sessions</th>
-          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">kWh</th>
-          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Cost AED</th>
-          <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Avg AED</th>
-        </tr>
-      </thead>
+      <thead><tr style="border-bottom:1px solid var(--border2);">
+        <th style="padding:8px;text-align:left;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Month</th>
+        <th style="padding:8px;text-align:center;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Sessions</th>
+        <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">kWh</th>
+        <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Cost AED</th>
+        <th style="padding:8px;text-align:right;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Avg AED</th>
+      </tr></thead>
       <tbody>
         ${tableKeys.map((k, i) => `
-          <tr style="border-bottom:1px solid var(--border);background:${i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'};">
-            <td style="padding:10px 8px;color:var(--text);font-weight:500;">${formatMonth(k)}</td>
+          <tr style="border-bottom:1px solid var(--border);background:${k === now ? 'rgba(245,166,35,0.05)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'};">
+            <td style="padding:10px 8px;color:${k === now ? 'var(--warn)' : 'var(--text)'};font-weight:${k === now ? '600' : '500'};">${formatMonth(k)}${k === now ? ' <span style="font-size:9px;background:rgba(245,166,35,0.15);color:var(--warn);padding:1px 5px;border-radius:3px;">now</span>' : ''}</td>
             <td style="padding:10px 8px;text-align:center;color:var(--text2);">${months[k].sessions}</td>
             <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${months[k].kwh.toFixed(1)}</td>
             <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${months[k].cost.toFixed(2)}</td>
@@ -379,6 +523,60 @@ function renderSummary() {
     </table>`;
 }
 
+// ── LOGS TABLE ────────────────────────────────────────────────────────────────
+function toggleLogs() {
+  logsVisible = !logsVisible;
+  document.getElementById('logs-section').style.display = logsVisible ? 'block' : 'none';
+  document.getElementById('log-toggle-btn').textContent = logsVisible ? 'Hide sessions ▲' : 'Show sessions ▼';
+  if (logsVisible) renderLogs();
+}
+
+function setLogFilter(month) {
+  currentLogFilter = month;
+  renderLogs();
+}
+
+function renderLogs() {
+  // Build month filter pills
+  const monthKeys = [...new Set(sessions.map(s => normalizeDate(s.date).slice(0, 7)))].sort().reverse();
+  const filterEl = document.getElementById('log-filter');
+  filterEl.innerHTML = [
+    `<button class="filter-pill${currentLogFilter === 'all' ? ' active' : ''}" onclick="setLogFilter('all')">All</button>`,
+    ...monthKeys.map(k => `<button class="filter-pill${currentLogFilter === k ? ' active' : ''}" onclick="setLogFilter('${k}')">${formatMonth(k)}</button>`)
+  ].join('');
+
+  // Filter sessions
+  const filtered = currentLogFilter === 'all'
+    ? sessions
+    : sessions.filter(s => normalizeDate(s.date).slice(0, 7) === currentLogFilter);
+
+  const el = document.getElementById('logs-table');
+  if (!filtered.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">No sessions</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div style="overflow-x:auto;margin-top:12px;">
+    <table class="log-tbl">
+      <thead><tr>
+        <th>Date</th><th>Time</th><th style="text-align:center;">Before</th><th style="text-align:center;">After</th><th style="text-align:right;">kWh</th><th style="text-align:right;">Cost</th>
+      </tr></thead>
+      <tbody>
+        ${filtered.map(s => `
+          <tr>
+            <td style="color:var(--text);white-space:nowrap;">${formatDate(s.date)}</td>
+            <td style="color:var(--text3);font-family:'DM Mono',monospace;">${s.time}</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--warn);">${s.before}%</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--accent);">${s.after}%</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--info);">${s.kwh}</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--warn);font-weight:600;">${s.cost.toFixed(2)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
 function exportCSV() {
   if (!sessions.length) { showToast('No data to export', 'error'); return; }
   const headers = ['Date', 'Time', 'Location', 'Before %', 'After %', 'kWh', 'Rate AED/kWh', 'Cost AED', 'Notes'];
@@ -392,13 +590,12 @@ function exportCSV() {
   const a = document.createElement('a');
   a.href = url;
   a.download = 'EV-Charging-' + new Date().toISOString().split('T')[0] + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('CSV exported ✓', 'success');
 }
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function normalizeDate(val) {
   if (!val) return '';
   const s = String(val).trim();
@@ -407,6 +604,11 @@ function normalizeDate(val) {
   if (/^\d{5,}$/.test(s)) { const d = new Date((parseFloat(s) - 25569) * 86400000); return d.toISOString().split('T')[0]; }
   try { const d = new Date(s); if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); } catch (e) {}
   return s;
+}
+function formatDate(d) {
+  const nd = normalizeDate(d);
+  if (!nd) return '—';
+  return new Date(nd + 'T00:00:00').toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function formatMonth(m) {
   if (!m || !m.match(/^\d{4}-\d{2}$/)) return m;
