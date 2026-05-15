@@ -78,14 +78,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div id="connect-section" style="display:none;">
     <div class="connect-card">
       <div class="connect-title">Connect to data</div>
-      <div class="connect-sub">Enter the JSONBin credentials to load charging data.</div>
+      <div class="connect-sub">Enter your JSONBin Bin ID and a <strong>read-only Access Key</strong> (not your Master Key). Create one at jsonbin.io → profile → Access Keys.</div>
       <div class="form-group">
         <label class="form-label">Bin ID</label>
         <input type="text" class="form-input" id="input-bin" placeholder="e.g. 64a1b2c3d4e5f6...">
       </div>
       <div class="form-group">
-        <label class="form-label">API Key</label>
-        <input type="password" class="form-input" id="input-key" placeholder="$2b$10$...">
+        <label class="form-label">Access Key (Read Only)</label>
+        <input type="password" class="form-input" id="input-key" placeholder="Read-only access key...">
       </div>
       <button class="btn btn-primary" onclick="saveCredentials()">Connect</button>
     </div>
@@ -172,8 +172,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const BATTERY_KWH = 27.28;
 let sessions = [];
-let binId = localStorage.getItem('ev_bin_id') || '';
-let binKey = localStorage.getItem('ev_bin_key') || '';
+let binId = localStorage.getItem('ev_summary_bin_id') || '';
+let binKey = localStorage.getItem('ev_summary_access_key') || '';
 
 async function init() {
   if (binId && binKey) {
@@ -194,15 +194,15 @@ async function saveCredentials() {
   const bin = document.getElementById('input-bin').value.trim();
   if (!key || !bin) { showToast('Enter both fields', 'error'); return; }
   binKey = key; binId = bin;
-  localStorage.setItem('ev_bin_key', key);
-  localStorage.setItem('ev_bin_id', bin);
+  localStorage.setItem('ev_summary_access_key', key);
+  localStorage.setItem('ev_summary_bin_id', bin);
   showSummary();
   await loadData();
 }
 
 function disconnect() {
-  localStorage.removeItem('ev_bin_id');
-  localStorage.removeItem('ev_bin_key');
+  localStorage.removeItem('ev_summary_bin_id');
+  localStorage.removeItem('ev_summary_access_key');
   binId = ''; binKey = '';
   sessions = [];
   document.getElementById('summary-section').style.display = 'none';
@@ -213,7 +213,7 @@ async function loadData() {
   showLoading();
   try {
     const res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
-      headers: { 'X-Master-Key': binKey }
+      headers: { 'X-Access-Key': binKey }
     });
     if (!res.ok) throw new Error('Load failed: ' + res.status);
     const data = await res.json();
