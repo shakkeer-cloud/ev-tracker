@@ -116,6 +116,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sum-stat3-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
 .sum-stat3-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
 .sum-stat3-change{font-size:11px;margin-top:4px;}
+/* Summary hero */
+.sum-hero-card{background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(245,166,35,0.03));border-color:rgba(245,166,35,0.25);}
+.sum-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.sum-hero-amount{font-size:44px;font-weight:600;font-family:'DM Mono',monospace;color:var(--warn);letter-spacing:-2px;line-height:1;}
+.sum-hero-badge{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:100px;font-size:12px;font-weight:600;font-family:'DM Mono',monospace;flex-wrap:wrap;text-align:right;max-width:130px;line-height:1.4;}
+.sum-hero-badge.up{background:rgba(245,166,35,0.15);color:var(--warn);}
+.sum-hero-badge.down{background:rgba(0,229,160,0.12);color:var(--accent);}
+.sum-hero-badge.neutral{background:var(--surface2);color:var(--text3);}
+/* Donut grid */
+.donut-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.donut-grid .card{margin-bottom:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -209,8 +220,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- SUMMARY -->
 <div class="page" id="page-summary">
 
+  <!-- Hero: Monthly Cost -->
+  <div class="card sum-hero-card">
+    <div class="sum-hero-top">
+      <div>
+        <div class="card-title" style="color:rgba(245,166,35,0.6);margin-bottom:10px;">Monthly cost</div>
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <div class="sum-hero-amount" id="sum-hero-cost">0.00</div>
+          <div style="font-size:16px;font-weight:500;color:var(--text2);">AED</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px;font-family:'DM Mono',monospace;" id="sum-hero-month"></div>
+      </div>
+      <div id="sum-hero-change"></div>
+    </div>
+    <div id="monthly-cost-chart"></div>
+  </div>
+
   <!-- This month highlight -->
-  <div class="card sum-highlight-card" style="margin-bottom:12px;">
+  <div class="card sum-highlight-card">
     <div class="sum-highlight-header">
       <div class="card-title" style="color:var(--accent);margin-bottom:0;">This month</div>
       <div id="sum-thismonth-label" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
@@ -246,22 +273,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </div>
 
+  <!-- Donut charts -->
+  <div class="donut-grid">
+    <div class="card">
+      <div class="card-title">Cost by month</div>
+      <div id="donut-months" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">By weekday</div>
+      <div id="donut-weekday" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
   <!-- Monthly kWh chart -->
   <div class="card">
     <div class="card-title">Monthly kWh charged</div>
     <div id="chart-kwh"></div>
-  </div>
-
-  <!-- Monthly cost chart -->
-  <div class="card">
-    <div class="card-title">Monthly cost (AED)</div>
-    <div id="chart-cost"></div>
-  </div>
-
-  <!-- Location breakdown -->
-  <div class="card">
-    <div class="card-title">By location</div>
-    <div id="sum-locations"></div>
   </div>
 
   <!-- Full monthly breakdown table -->
@@ -668,6 +695,36 @@ function renderHistory(){
     </div>`).join('');
 }
 
+// Donut chart renderer (SVG path math, no library)
+const PIE_COLORS=['#00e5a0','#f5a623','#4a90d9','#e05252','#9b8fd4','#f07d3e','#56b4d3'];
+const DAY_COLORS=['#e05252','#4a90d9','#f5a623','#00e5a0','#9b8fd4','#f07d3e','#e8638a'];
+function renderDonut(el,data){
+  // data: [{label,value,color}]
+  const total=data.reduce((a,d)=>a+d.value,0);
+  if(!total){el.innerHTML='<div style="color:var(--text3);font-size:12px;">No data</div>';return;}
+  const cx=60,cy=60,r=50,ri=30,sz=120;
+  let angle=-Math.PI/2;
+  let paths='';
+  data.forEach(d=>{
+    const slice=d.value/total*Math.PI*2;
+    if(slice<0.001)return;
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+slice),y2=cy+r*Math.sin(angle+slice);
+    const ix1=cx+ri*Math.cos(angle),iy1=cy+ri*Math.sin(angle);
+    const ix2=cx+ri*Math.cos(angle+slice),iy2=cy+ri*Math.sin(angle+slice);
+    const large=slice>Math.PI?1:0;
+    paths+=`<path d="M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${ix2},${iy2} A${ri},${ri} 0 ${large} 0 ${ix1},${iy1} Z" fill="${d.color}" opacity="0.9"/>`;
+    angle+=slice;
+  });
+  const legend=data.map(d=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);white-space:nowrap;">
+    <div style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0;"></div>
+    <span>${d.label}</span>
+    <span style="color:var(--text3);font-family:'DM Mono',monospace;">${(d.value/total*100).toFixed(0)}%</span>
+  </div>`).join('');
+  el.innerHTML=`<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="flex-shrink:0;">${paths}</svg>
+    <div style="display:flex;flex-direction:column;gap:5px;">${legend}</div>`;
+}
+
 function renderSummary(){
   const tk=sessions.reduce((a,s)=>a+Number(s.kwh),0);
   const tc=sessions.reduce((a,s)=>a+Number(s.cost),0);
@@ -700,8 +757,34 @@ function renderSummary(){
   const thisM=months[thisMonthKey]||{kwh:0,cost:0,sessions:0};
   const lastM=months[lastMonthKey]||null;
 
-  document.getElementById('sum-thismonth-label').textContent=formatMonth(thisMonthKey);
+  // Hero cost card
+  document.getElementById('sum-hero-cost').textContent=thisM.cost.toFixed(2);
+  document.getElementById('sum-hero-month').textContent=formatMonth(thisMonthKey);
+  if(lastM&&lastM.cost>0){
+    const pct=((thisM.cost-lastM.cost)/lastM.cost*100).toFixed(0);
+    const dir=parseFloat(pct)>=0?'+':'';
+    const isUp=parseFloat(pct)>0;
+    document.getElementById('sum-hero-change').innerHTML=`<div class="sum-hero-badge ${isUp?'up':'down'}">${isUp?'↑':'↓'} ${Math.abs(pct)}%<br>vs last month</div>`;
+  } else {
+    document.getElementById('sum-hero-change').innerHTML='';
+  }
 
+  // Hero cost bar chart: last 6 months, newest first
+  const costBarKeys=[...allKeys].reverse().slice(0,6);
+  const mxC2=Math.max(...costBarKeys.map(k=>months[k].cost),1);
+  document.getElementById('monthly-cost-chart').innerHTML=costBarKeys.map((k,i)=>{
+    const isCurrent=k===thisMonthKey;
+    return `<div class="chart-bar-group" style="margin-bottom:${i===costBarKeys.length-1?'0':'10px'};">
+      <div class="chart-month">
+        <span style="${isCurrent?'color:var(--text);font-weight:600;':''}">${formatMonth(k)}${isCurrent?' <span style="font-size:10px;background:rgba(0,229,160,0.15);color:var(--accent);padding:1px 6px;border-radius:100px;font-family:DM Mono,monospace;">now</span>':''}</span>
+        <span style="color:var(--warn);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span>
+      </div>
+      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost/mxC2*100).toFixed(1)}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // This month stat block
+  document.getElementById('sum-thismonth-label').textContent=formatMonth(thisMonthKey);
   let compareHtml='';
   if(lastM&&lastM.cost>0){
     const pct=((thisM.cost-lastM.cost)/lastM.cost*100).toFixed(0);
@@ -709,7 +792,6 @@ function renderSummary(){
     const col=parseFloat(pct)>0?'var(--warn)':'var(--accent)';
     compareHtml=`<div class="sum-stat3-change" style="color:${col};">${dir}${pct}% vs ${formatMonth(lastMonthKey)}</div>`;
   }
-
   const tmEl=document.getElementById('sum-thismonth');
   if(!n){
     tmEl.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:8px 0;">No data yet</div>';
@@ -732,49 +814,37 @@ function renderSummary(){
       </div>`;
   }
 
-  // Charts: last 12 months
-  const chartKeys=allKeys.slice(-12);
-  const mxK=Math.max(...chartKeys.map(k=>months[k].kwh),1);
-  const mxC=Math.max(...chartKeys.map(k=>months[k].cost),1);
+  // Donut: cost by month (last 6)
+  const donutMonthKeys=[...allKeys].slice(-6);
+  renderDonut(
+    document.getElementById('donut-months'),
+    donutMonthKeys.map((k,i)=>({label:formatMonth(k),value:months[k].cost,color:PIE_COLORS[i%PIE_COLORS.length]}))
+  );
 
-  document.getElementById('chart-kwh').innerHTML=chartKeys.length?chartKeys.map(k=>`
-    <div class="chart-bar-group">
-      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span></div>
+  // Donut: sessions by weekday
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dayCounts=new Array(7).fill(0);
+  sessions.forEach(s=>{const d=new Date(normalizeDate(s.date));if(!isNaN(d))dayCounts[d.getDay()]++;});
+  renderDonut(
+    document.getElementById('donut-weekday'),
+    DAYS.map((label,i)=>({label,value:dayCounts[i],color:DAY_COLORS[i]})).filter(d=>d.value>0)
+  );
+
+  // kWh chart: newest first
+  const kwhKeys=[...allKeys].reverse().slice(0,12);
+  const mxK=Math.max(...kwhKeys.map(k=>months[k].kwh),1);
+  document.getElementById('chart-kwh').innerHTML=kwhKeys.length?kwhKeys.map((k,i)=>{
+    const isCurrent=k===thisMonthKey;
+    return `<div class="chart-bar-group" style="margin-bottom:${i===kwhKeys.length-1?'0':'14px'};">
+      <div class="chart-month">
+        <span style="${isCurrent?'color:var(--text);font-weight:600;':''}">${formatMonth(k)}${isCurrent?' <span style="font-size:10px;background:rgba(0,229,160,0.15);color:var(--accent);padding:1px 6px;border-radius:100px;font-family:DM Mono,monospace;">now</span>':''}</span>
+        <span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].kwh.toFixed(1)} kWh</span>
+      </div>
       <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(months[k].kwh/mxK*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
+    </div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
 
-  document.getElementById('chart-cost').innerHTML=chartKeys.length?chartKeys.map(k=>`
-    <div class="chart-bar-group">
-      <div class="chart-month"><span>${formatMonth(k)}</span><span style="color:var(--text);font-family:'DM Mono',monospace;">${months[k].cost.toFixed(2)} AED</span></div>
-      <div class="chart-bar-track"><div class="chart-bar-fill cost" style="width:${(months[k].cost/mxC*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:13px;">No data yet</div>';
-
-  // Location breakdown
-  const locs={};
-  sessions.forEach(s=>{
-    const l=(s.location||'Unknown').trim();
-    if(!locs[l])locs[l]={kwh:0,cost:0,sessions:0};
-    locs[l].kwh+=Number(s.kwh);
-    locs[l].cost+=Number(s.cost);
-    locs[l].sessions++;
-  });
-  const locKeys=Object.keys(locs).sort((a,b)=>locs[b].sessions-locs[a].sessions);
-  const mxLS=Math.max(...locKeys.map(k=>locs[k].sessions),1);
-  const locEl=document.getElementById('sum-locations');
-  if(!locKeys.length){
-    locEl.innerHTML='<div style="color:var(--text3);font-size:13px;">No data yet</div>';
-  } else {
-    locEl.innerHTML=locKeys.map(k=>`
-      <div class="chart-bar-group">
-        <div class="chart-month">
-          <span>${k}</span>
-          <span style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${locs[k].sessions} · ${locs[k].cost.toFixed(2)} AED</span>
-        </div>
-        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(locs[k].sessions/mxLS*100).toFixed(1)}%;background:var(--info);"></div></div>
-      </div>`).join('');
-  }
-
-  // Full monthly breakdown table — all time, newest first
+  // All months table — newest first
   const tableKeys=[...allKeys].reverse();
   const tableEl=document.getElementById('monthly-table');
   if(!tableKeys.length){
@@ -801,14 +871,16 @@ function renderSummary(){
         </tr>
       </thead>
       <tbody>
-        ${tableKeys.map((k,i)=>`
-          <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'};">
-            <td style="padding:10px 8px;color:var(--text);font-weight:500;">${formatMonth(k)}</td>
+        ${tableKeys.map((k,i)=>{
+          const isCur=k===thisMonthKey;
+          return `<tr style="border-bottom:1px solid var(--border);background:${isCur?'rgba(0,229,160,0.05)':i%2===0?'transparent':'rgba(255,255,255,0.02)'};">
+            <td style="padding:10px 8px;color:${isCur?'var(--accent)':'var(--text)'};font-weight:${isCur?'600':'500'};">${formatMonth(k)}${isCur?' <span style="font-size:10px;background:rgba(0,229,160,0.15);color:var(--accent);padding:1px 6px;border-radius:100px;font-family:DM Mono,monospace;vertical-align:middle;">now</span>':''}</td>
             <td style="padding:10px 8px;text-align:center;color:var(--text2);">${months[k].sessions}</td>
             <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">${months[k].kwh.toFixed(1)}</td>
             <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--warn);">${months[k].cost.toFixed(2)}</td>
             <td style="padding:10px 8px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${(months[k].cost/months[k].sessions).toFixed(2)}</td>
-          </tr>`).join('')}
+          </tr>`;
+        }).join('')}
         ${totalRow}
       </tbody>
     </table>`;
