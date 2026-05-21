@@ -327,7 +327,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="setup-num">3</div>
     <div class="setup-body">
       <div class="setup-title">Get your Web API Key</div>
-      <div class="setup-text">Project Settings (⚙️ top-left) → General tab → scroll to <b>Web API Key</b> → copy it. This lets the app sign in securely without exposing your data publicly.</div>
+      <div class="setup-text">⚙️ Project Settings → General tab → copy the <b>Web API Key</b>.</div>
       <input type="text" class="form-input" id="input-fb-apikey" placeholder="AIzaSy..." style="margin-top:10px;" autocapitalize="off" autocorrect="off">
     </div>
   </div>
@@ -335,19 +335,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="setup-step">
     <div class="setup-num">4</div>
     <div class="setup-body">
-      <div class="setup-title">Enable Anonymous Auth & set rules</div>
-      <div class="setup-text">① Build → Authentication → Get started → Sign-in method → <b>Anonymous → Enable → Save</b><br><br>② Realtime Database → Rules → replace with:<br><code style="display:block;background:var(--surface2);padding:8px 10px;border-radius:6px;font-size:11px;margin-top:6px;line-height:1.7;">{"rules":{".read":"auth != null",".write":"auth != null"}}</code>→ Publish</div>
+      <div class="setup-title">Enable Anonymous Auth</div>
+      <div class="setup-text">Authentication → Sign-in method → <b>Anonymous → Enable → Save</b>.</div>
     </div>
   </div>
 
   <div class="setup-step">
     <div class="setup-num">5</div>
     <div class="setup-body">
-      <div class="setup-title">Choose a secret path & connect</div>
-      <div class="setup-text">Pick any private word/phrase for your data path. Use the same one in the Summary page.</div>
-      <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. shakkeer-ev-2024" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
+      <div class="setup-title">Set secure database rules</div>
+      <div class="setup-text">Realtime Database → Rules → replace with the code below → <b>Publish</b>. Your data will be locked to your device only.<br><code style="display:block;background:var(--surface2);padding:8px 10px;border-radius:6px;font-size:11px;margin-top:8px;line-height:1.8;word-break:break-all;">{"rules":{"users":{"$uid":{".read":"auth.uid == $uid",".write":"auth.uid == $uid"}}}}</code></div>
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">6</div>
+    <div class="setup-body">
+      <div class="setup-title">Connect</div>
+      <div class="setup-text">Tap Save — the app signs in anonymously and creates your private data space.</div>
       <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
       <div class="cred-status" id="cred-status"></div>
+      <div id="fb-uid-wrap" style="display:none;margin-top:10px;">
+        <div class="setup-text" style="margin-bottom:4px;">Your User ID (share with Summary page):</div>
+        <div id="fb-uid-display" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--surface2);padding:8px 10px;border-radius:6px;word-break:break-all;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -454,9 +465,9 @@ const APP_VERSION = '2.0';
 let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = [];
 let fbUrl = localStorage.getItem('ev_firebase_url') || '';
-let fbPath = localStorage.getItem('ev_firebase_path') || '';
 let fbApiKey = localStorage.getItem('ev_firebase_apikey') || '';
 let _fbToken = ''; let _fbTokenExpiry = 0;
+let _fbUid = localStorage.getItem('ev_firebase_uid') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
@@ -478,20 +489,23 @@ async function getToken() {
       }
     } catch(e) {}
   }
-  // First time — sign in anonymously
+  // First time — sign in anonymously, get a permanent UID
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${fbApiKey}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({returnSecureToken:true})});
   if (!r.ok) throw new Error('Auth failed: '+r.status);
   const d = await r.json();
   _fbToken = d.idToken; _fbTokenExpiry = Date.now() + d.expiresIn*1000;
+  _fbUid = d.localId;
   localStorage.setItem('ev_firebase_rt', d.refreshToken);
+  localStorage.setItem('ev_firebase_uid', d.localId);
   return _fbToken;
 }
 
 // ── Firebase Realtime Database REST API ─────────────────────────────────────
+// Data lives at users/<uid>/sessions — only that UID can read/write it
 function fbEndpoint(token) {
-  return fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json?auth=' + token;
+  return fbUrl.replace(/\/+$/,'') + '/users/' + _fbUid + '/sessions.json?auth=' + token;
 }
 async function binSave() {
   const token = await getToken();
@@ -630,10 +644,10 @@ async function init() {
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
   updateRateDisplay();
-  if(fbUrl&&fbPath&&fbApiKey){
+  if(fbUrl&&fbApiKey){
     document.getElementById('input-fb-url').value = fbUrl;
-    document.getElementById('input-fb-path').value = fbPath;
     document.getElementById('input-fb-apikey').value = fbApiKey;
+    showUid();
     document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     await loadData();
@@ -642,29 +656,37 @@ async function init() {
   }
 }
 
+function showUid() {
+  if(!_fbUid) return;
+  const el = document.getElementById('fb-uid-display');
+  const wrap = document.getElementById('fb-uid-wrap');
+  if(el) el.textContent = _fbUid;
+  if(wrap) wrap.style.display = 'block';
+}
+
 // ── CREDENTIALS ─────────────────────────────────────────────────────────────
 async function saveCredentials() {
   const url = document.getElementById('input-fb-url').value.trim();
-  const path = document.getElementById('input-fb-path').value.trim();
   const apikey = document.getElementById('input-fb-apikey').value.trim();
-  if(!url||!path||!apikey){ showToast('Fill in all three fields','error'); return; }
-  fbUrl = url; fbPath = path; fbApiKey = apikey;
+  if(!url||!apikey){ showToast('Enter Database URL and API Key','error'); return; }
+  fbUrl = url; fbApiKey = apikey;
   localStorage.setItem('ev_firebase_url', url);
-  localStorage.setItem('ev_firebase_path', path);
   localStorage.setItem('ev_firebase_apikey', apikey);
-  localStorage.removeItem('ev_firebase_rt'); // clear old token on credential change
-  _fbToken = ''; _fbTokenExpiry = 0;
+  localStorage.removeItem('ev_firebase_rt');
+  localStorage.removeItem('ev_firebase_uid');
+  _fbToken = ''; _fbTokenExpiry = 0; _fbUid = '';
   showLoading('Connecting...');
   try {
     await binLoad();
     hideLoading();
+    showUid();
     document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     showToast('Connected ✓','success');
     await loadData();
   } catch(e){
     hideLoading();
-    document.getElementById('cred-status').textContent = '✗ Connection failed — check all fields';
+    document.getElementById('cred-status').textContent = '✗ Connection failed — check URL and API Key';
     document.getElementById('cred-status').className = 'cred-status error';
     showToast('Connection failed','error');
     console.error(e);
