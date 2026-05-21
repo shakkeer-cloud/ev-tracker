@@ -494,7 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 const BATTERY_KWH = 27.28;
-const APP_VERSION = '3.2';
+const APP_VERSION = '3.3';
 let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = [];
 let fbUrl = localStorage.getItem('ev_firebase_url') || '';
@@ -817,6 +817,7 @@ function switchTab(tab){
 
 // ── SAVE SESSION ─────────────────────────────────────────────────────────────
 async function saveSession(){
+  if(!fbUrl||!fbApiKey||!fbPath){ showToast('Not connected — go to Setup tab','error'); return; }
   const b=pctVals['before'],a=pctVals['after'];
   const date=document.getElementById('log-date').value;
   if(!date||a<=b){showToast('Set valid before & after %','error');return;}
@@ -833,7 +834,13 @@ async function saveSession(){
   sessions.unshift(s);
   resetLogForm();
   renderHistory(); renderSummary();
-  await saveData('Session saved ✓');
+  const ok = await saveData('Session saved ✓');
+  if(!ok){
+    // Rollback — Firebase save failed, remove from memory so UI matches reality
+    sessions.shift();
+    renderHistory(); renderSummary();
+    showToast('Session not saved — check Setup tab','error');
+  }
 }
 
 function resetLogForm(){
@@ -1080,6 +1087,7 @@ function openEdit(id){
 }
 
 async function saveEdit(){
+  if(!fbUrl||!fbApiKey||!fbPath){ showToast('Not connected — go to Setup tab','error'); return; }
   const id=document.getElementById('edit-id').value;
   const idx=sessions.findIndex(x=>x.id===id); if(idx===-1) return;
   const b=pctVals['edit-before'],a=pctVals['edit-after'];
@@ -1087,6 +1095,7 @@ async function saveEdit(){
   const r=parseFloat(document.getElementById('edit-rate').value)||currentRate;
   const kwh=parseFloat((BATTERY_KWH*(a-b)/100).toFixed(2));
   const cost=parseFloat((kwh*r).toFixed(2));
+  const prev={...sessions[idx]};
   sessions[idx]={...sessions[idx],
     date:normalizeDate(document.getElementById('edit-date').value),
     time:document.getElementById('edit-time').value,
@@ -1095,15 +1104,27 @@ async function saveEdit(){
     notes:document.getElementById('edit-notes').value
   };
   closeModal(); renderHistory(); renderSummary();
-  await saveData('Updated ✓');
+  const ok = await saveData('Updated ✓');
+  if(!ok){
+    sessions[idx]=prev; // rollback
+    renderHistory(); renderSummary();
+    showToast('Edit not saved — check Setup tab','error');
+  }
 }
 
 async function deleteSession(){
+  if(!fbUrl||!fbApiKey||!fbPath){ showToast('Not connected — go to Setup tab','error'); return; }
   const id=document.getElementById('edit-id').value;
   if(!confirm('Delete this session?')) return;
+  const prev=[...sessions];
   sessions=sessions.filter(s=>s.id!==id);
   closeModal(); renderHistory(); renderSummary();
-  await saveData('Deleted');
+  const ok = await saveData('Deleted');
+  if(!ok){
+    sessions=prev; // rollback
+    renderHistory(); renderSummary();
+    showToast('Delete failed — check Setup tab','error');
+  }
 }
 
 function closeModal(){ document.getElementById('edit-modal').classList.remove('open'); }
