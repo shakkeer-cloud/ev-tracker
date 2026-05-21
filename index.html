@@ -318,7 +318,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="setup-num">2</div>
     <div class="setup-body">
       <div class="setup-title">Enable Realtime Database</div>
-      <div class="setup-text">In your project → Build → Realtime Database → Create Database → choose any region → <b>Start in test mode</b> → Enable. Copy the <b>Database URL</b> (e.g. https://my-app-default-rtdb.firebaseio.com).</div>
+      <div class="setup-text">Build → Realtime Database → Create Database → choose a region → <b>Start in test mode</b> → Enable. Copy the <b>Database URL</b> shown at the top.</div>
       <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
     </div>
   </div>
@@ -326,17 +326,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="setup-step">
     <div class="setup-num">3</div>
     <div class="setup-body">
-      <div class="setup-title">Choose a secret path</div>
-      <div class="setup-text">Pick any private word or phrase — this is your data's path in the database. Only people who know it can access your data. Keep it safe and use it in the Summary page too.</div>
-      <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. shakkeer-ev-2024" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
+      <div class="setup-title">Get your Web API Key</div>
+      <div class="setup-text">Project Settings (⚙️ top-left) → General tab → scroll to <b>Web API Key</b> → copy it. This lets the app sign in securely without exposing your data publicly.</div>
+      <input type="text" class="form-input" id="input-fb-apikey" placeholder="AIzaSy..." style="margin-top:10px;" autocapitalize="off" autocorrect="off">
     </div>
   </div>
 
   <div class="setup-step">
     <div class="setup-num">4</div>
     <div class="setup-body">
-      <div class="setup-title">Save & connect</div>
-      <div class="setup-text">Tap Save — the app will instantly connect and load your data from Firebase.</div>
+      <div class="setup-title">Enable Anonymous Auth & set rules</div>
+      <div class="setup-text">① Build → Authentication → Get started → Sign-in method → <b>Anonymous → Enable → Save</b><br><br>② Realtime Database → Rules → replace with:<br><code style="display:block;background:var(--surface2);padding:8px 10px;border-radius:6px;font-size:11px;margin-top:6px;line-height:1.7;">{"rules":{".read":"auth != null",".write":"auth != null"}}</code>→ Publish</div>
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">5</div>
+    <div class="setup-body">
+      <div class="setup-title">Choose a secret path & connect</div>
+      <div class="setup-text">Pick any private word/phrase for your data path. Use the same one in the Summary page.</div>
+      <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. shakkeer-ev-2024" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
       <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
       <div class="cred-status" id="cred-status"></div>
     </div>
@@ -446,16 +455,47 @@ let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = [];
 let fbUrl = localStorage.getItem('ev_firebase_url') || '';
 let fbPath = localStorage.getItem('ev_firebase_path') || '';
+let fbApiKey = localStorage.getItem('ev_firebase_apikey') || '';
+let _fbToken = ''; let _fbTokenExpiry = 0;
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
+// ── Firebase Auth (anonymous) ────────────────────────────────────────────────
+async function getToken() {
+  if (_fbToken && Date.now() < _fbTokenExpiry - 60000) return _fbToken;
+  // Try refreshing existing anonymous session
+  const rt = localStorage.getItem('ev_firebase_rt');
+  if (rt) {
+    try {
+      const r = await fetch(`https://securetoken.googleapis.com/v1/token?key=${fbApiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({grant_type:'refresh_token',refresh_token:rt})});
+      if (r.ok) {
+        const d = await r.json();
+        _fbToken = d.id_token; _fbTokenExpiry = Date.now() + d.expires_in*1000;
+        localStorage.setItem('ev_firebase_rt', d.refresh_token);
+        return _fbToken;
+      }
+    } catch(e) {}
+  }
+  // First time — sign in anonymously
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${fbApiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({returnSecureToken:true})});
+  if (!r.ok) throw new Error('Auth failed: '+r.status);
+  const d = await r.json();
+  _fbToken = d.idToken; _fbTokenExpiry = Date.now() + d.expiresIn*1000;
+  localStorage.setItem('ev_firebase_rt', d.refreshToken);
+  return _fbToken;
+}
+
 // ── Firebase Realtime Database REST API ─────────────────────────────────────
-function fbEndpoint() {
-  // Normalise URL (strip trailing slash) then append secret path
-  return fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json';
+function fbEndpoint(token) {
+  return fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json?auth=' + token;
 }
 async function binSave() {
-  const res = await fetch(fbEndpoint(), {
+  const token = await getToken();
+  const res = await fetch(fbEndpoint(token), {
     method:'PUT',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify(sessions)
@@ -464,7 +504,8 @@ async function binSave() {
   return res.json();
 }
 async function binLoad() {
-  const res = await fetch(fbEndpoint());
+  const token = await getToken();
+  const res = await fetch(fbEndpoint(token));
   if(!res.ok) throw new Error('Load failed: '+res.status);
   const data = await res.json();
   return Array.isArray(data) ? data : [];
@@ -589,9 +630,10 @@ async function init() {
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
   updateRateDisplay();
-  if(fbUrl&&fbPath){
+  if(fbUrl&&fbPath&&fbApiKey){
     document.getElementById('input-fb-url').value = fbUrl;
     document.getElementById('input-fb-path').value = fbPath;
+    document.getElementById('input-fb-apikey').value = fbApiKey;
     document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     await loadData();
@@ -604,10 +646,14 @@ async function init() {
 async function saveCredentials() {
   const url = document.getElementById('input-fb-url').value.trim();
   const path = document.getElementById('input-fb-path').value.trim();
-  if(!url||!path){ showToast('Enter both Database URL and secret path','error'); return; }
-  fbUrl = url; fbPath = path;
+  const apikey = document.getElementById('input-fb-apikey').value.trim();
+  if(!url||!path||!apikey){ showToast('Fill in all three fields','error'); return; }
+  fbUrl = url; fbPath = path; fbApiKey = apikey;
   localStorage.setItem('ev_firebase_url', url);
   localStorage.setItem('ev_firebase_path', path);
+  localStorage.setItem('ev_firebase_apikey', apikey);
+  localStorage.removeItem('ev_firebase_rt'); // clear old token on credential change
+  _fbToken = ''; _fbTokenExpiry = 0;
   showLoading('Connecting...');
   try {
     await binLoad();
@@ -618,7 +664,7 @@ async function saveCredentials() {
     await loadData();
   } catch(e){
     hideLoading();
-    document.getElementById('cred-status').textContent = '✗ Connection failed — check URL and path';
+    document.getElementById('cred-status').textContent = '✗ Connection failed — check all fields';
     document.getElementById('cred-status').className = 'cred-status error';
     showToast('Connection failed','error');
     console.error(e);

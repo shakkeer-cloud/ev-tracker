@@ -120,10 +120,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div id="connect-section" style="display:none;">
     <div class="connect-card">
       <div class="connect-title">Connect to data</div>
-      <div class="connect-sub">Enter your Firebase Realtime Database URL and the <strong>secret path</strong> you chose when setting up the app.</div>
+      <div class="connect-sub">Enter your Firebase Database URL, Web API Key, and secret path from the app setup.</div>
       <div class="form-group">
         <label class="form-label">Database URL</label>
         <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" autocapitalize="off" autocorrect="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Web API Key</label>
+        <input type="text" class="form-input" id="input-fb-apikey" placeholder="AIzaSy..." autocapitalize="off" autocorrect="off">
       </div>
       <div class="form-group">
         <label class="form-label">Secret Path</label>
@@ -245,12 +249,40 @@ const PIE_COLORS = ['#00e5a0','#f5a623','#4a90d9','#e05252','#9b8fd4','#38c9a0',
 let sessions = [];
 let fbUrl = localStorage.getItem('ev_summary_firebase_url') || '';
 let fbPath = localStorage.getItem('ev_summary_firebase_path') || '';
+let fbApiKey = localStorage.getItem('ev_summary_firebase_apikey') || '';
+let _fbToken = ''; let _fbTokenExpiry = 0;
 let logsVisible = false;
 let currentLogFilter = 'all';
 
+async function getToken() {
+  if (_fbToken && Date.now() < _fbTokenExpiry - 60000) return _fbToken;
+  const rt = localStorage.getItem('ev_summary_firebase_rt');
+  if (rt) {
+    try {
+      const r = await fetch(`https://securetoken.googleapis.com/v1/token?key=${fbApiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({grant_type:'refresh_token',refresh_token:rt})});
+      if (r.ok) {
+        const d = await r.json();
+        _fbToken = d.id_token; _fbTokenExpiry = Date.now() + d.expires_in*1000;
+        localStorage.setItem('ev_summary_firebase_rt', d.refresh_token);
+        return _fbToken;
+      }
+    } catch(e) {}
+  }
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${fbApiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({returnSecureToken:true})});
+  if (!r.ok) throw new Error('Auth failed');
+  const d = await r.json();
+  _fbToken = d.idToken; _fbTokenExpiry = Date.now() + d.expiresIn*1000;
+  localStorage.setItem('ev_summary_firebase_rt', d.refreshToken);
+  return _fbToken;
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  if (fbUrl && fbPath) { showSummary(); await loadData(); }
+  if (fbUrl && fbPath && fbApiKey) { showSummary(); await loadData(); }
   else { document.getElementById('connect-section').style.display = 'block'; }
 }
 
@@ -262,10 +294,14 @@ function showSummary() {
 async function saveCredentials() {
   const url = document.getElementById('input-fb-url').value.trim();
   const path = document.getElementById('input-fb-path').value.trim();
-  if (!url || !path) { showToast('Enter both fields', 'error'); return; }
-  fbUrl = url; fbPath = path;
+  const apikey = document.getElementById('input-fb-apikey').value.trim();
+  if (!url || !path || !apikey) { showToast('Fill in all fields', 'error'); return; }
+  fbUrl = url; fbPath = path; fbApiKey = apikey;
   localStorage.setItem('ev_summary_firebase_url', url);
   localStorage.setItem('ev_summary_firebase_path', path);
+  localStorage.setItem('ev_summary_firebase_apikey', apikey);
+  localStorage.removeItem('ev_summary_firebase_rt');
+  _fbToken = ''; _fbTokenExpiry = 0;
   showSummary();
   await loadData();
 }
@@ -273,7 +309,9 @@ async function saveCredentials() {
 function disconnect() {
   localStorage.removeItem('ev_summary_firebase_url');
   localStorage.removeItem('ev_summary_firebase_path');
-  fbUrl = ''; fbPath = ''; sessions = [];
+  localStorage.removeItem('ev_summary_firebase_apikey');
+  localStorage.removeItem('ev_summary_firebase_rt');
+  fbUrl = ''; fbPath = ''; fbApiKey = ''; sessions = [];
   document.getElementById('summary-section').style.display = 'none';
   document.getElementById('connect-section').style.display = 'block';
 }
@@ -282,7 +320,8 @@ function disconnect() {
 async function loadData() {
   showLoading();
   try {
-    const endpoint = fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json';
+    const token = await getToken();
+    const endpoint = fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json?auth=' + token;
     const res = await fetch(endpoint);
     if (!res.ok) throw new Error('Load failed: ' + res.status);
     const data = await res.json();
