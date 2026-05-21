@@ -519,8 +519,12 @@ async function binSave() {
 }
 async function binLoad() {
   const token = await getToken();
-  const res = await fetch(fbEndpoint(token));
-  if(!res.ok) throw new Error('Load failed: '+res.status);
+  const url = fbEndpoint(token);
+  const res = await fetch(url);
+  if(!res.ok){
+    const body = await res.text().catch(()=>'');
+    throw new Error('Load failed: '+res.status+' '+body);
+  }
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
@@ -538,7 +542,7 @@ function localBackupLoad() {
 }
 
 async function loadData() {
-  if(!binId||!binKey){ renderHistory(); renderSummary(); return; }
+  if(!fbUrl||!fbApiKey){ renderHistory(); renderSummary(); return; }
   showLoading('Loading...');
   let loadedFromRemote = false;
   try {
@@ -686,7 +690,7 @@ async function saveCredentials() {
     await loadData();
   } catch(e){
     hideLoading();
-    document.getElementById('cred-status').textContent = '✗ Connection failed — check URL and API Key';
+    document.getElementById('cred-status').textContent = '✗ '+e.message;
     document.getElementById('cred-status').className = 'cred-status error';
     showToast('Connection failed','error');
     console.error(e);
