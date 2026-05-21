@@ -569,7 +569,7 @@ async function loadData() {
     if(backup && backup.length > 0){
       sessions = backup;
       sessions.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-      showToast('JSONBin unreachable — showing local backup','error');
+      showToast('Firebase unreachable — showing local backup','error');
     } else {
       showToast('Load failed — check credentials','error');
     }
@@ -579,7 +579,7 @@ async function loadData() {
 }
 
 async function saveData(msg='Saved ✓') {
-  if(!binId||!binKey){ showToast('Set up JSONBin in Setup tab','error'); return false; }
+  if(!fbUrl||!fbApiKey){ showToast('Set up Firebase in Setup tab','error'); return false; }
   // Safety guard: refuse to overwrite if session count drops by more than 50%
   const backup = localBackupLoad();
   if(backup && backup.length > 2 && sessions.length < backup.length * 0.5){
@@ -785,8 +785,8 @@ function renderHistory(){
   const list=document.getElementById('history-list');
   document.getElementById('history-count').textContent=sessions.length+' sessions';
   if(!sessions.length){
-    const msg=binId&&binKey?'No sessions yet.<br>Log your first charge above.':'No JSONBin connected.<br>Go to Setup tab to connect.';
-    list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">${binId&&binKey?'⚡':'🔗'}</div><div class="empty-state-text">${msg}</div></div>`;
+    const msg=fbUrl&&fbApiKey?'No sessions yet.<br>Log your first charge above.':'No Firebase connected.<br>Go to Setup tab to connect.';
+    list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">${fbUrl&&fbApiKey?'⚡':'🔗'}</div><div class="empty-state-text">${msg}</div></div>`;
     return;
   }
   list.innerHTML=sessions.map(s=>`
