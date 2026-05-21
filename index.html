@@ -355,10 +355,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="setup-text">Tap Save — the app signs in anonymously and creates your private data space.</div>
       <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
       <div class="cred-status" id="cred-status"></div>
-      <div id="fb-uid-wrap" style="display:none;margin-top:10px;">
-        <div class="setup-text" style="margin-bottom:4px;">Your User ID (share with Summary page):</div>
-        <div id="fb-uid-display" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--surface2);padding:8px 10px;border-radius:6px;word-break:break-all;"></div>
+    </div>
+  </div>
+
+  <!-- Share Summary card — shown only when connected -->
+  <div id="share-card" style="display:none;">
+    <div class="section-head" style="margin-top:8px;"><div class="section-title">Share Summary</div></div>
+    <div class="card" style="background:linear-gradient(135deg,rgba(0,229,160,0.07),rgba(0,229,160,0.02));border-color:rgba(0,229,160,0.2);">
+      <div class="card-title" style="color:var(--accent);">Summary page link</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Share this page with anyone you want to see your charging stats.</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div id="share-link" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
+        <button onclick="copyShareItem('share-link','Link')" style="flex-shrink:0;padding:8px 12px;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);color:var(--accent);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
       </div>
+
+      <div class="card-title" style="margin-top:4px;">Login details for the summary page</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">The recipient enters these on the summary page to connect to your data.</div>
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Database URL</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="share-url" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
+          <button onclick="copyShareItem('share-url','Database URL')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Web API Key</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="share-apikey" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          <button onclick="copyShareItem('share-apikey','API Key')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">User ID</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="fb-uid-display" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
+          <button onclick="copyShareItem('fb-uid-display','User ID')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
+        </div>
+      </div>
+
+      <button onclick="copyAllShareDetails()" class="btn btn-primary" style="margin-top:16px;font-size:13px;">📋 Copy all details</button>
     </div>
   </div>
 </div>
@@ -660,12 +698,50 @@ async function init() {
   }
 }
 
+const SUMMARY_URL = 'https://shakkeer-cloud.github.io/ev-tracker/summary.html';
+
 function showUid() {
   if(!_fbUid) return;
-  const el = document.getElementById('fb-uid-display');
-  const wrap = document.getElementById('fb-uid-wrap');
-  if(el) el.textContent = _fbUid;
-  if(wrap) wrap.style.display = 'block';
+  const uidEl = document.getElementById('fb-uid-display');
+  if(uidEl) uidEl.textContent = _fbUid;
+  // Populate and show share card
+  const card = document.getElementById('share-card');
+  if(!card) return;
+  const linkEl = document.getElementById('share-link');
+  const urlEl = document.getElementById('share-url');
+  const keyEl = document.getElementById('share-apikey');
+  if(linkEl) linkEl.textContent = SUMMARY_URL;
+  if(urlEl) urlEl.textContent = fbUrl;
+  if(keyEl) keyEl.textContent = fbApiKey;
+  card.style.display = 'block';
+}
+
+function copyShareItem(id, label) {
+  const text = document.getElementById(id)?.textContent || '';
+  navigator.clipboard.writeText(text).then(()=>showToast(label+' copied ✓','success')).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast(label+' copied ✓','success');
+  });
+}
+
+function copyAllShareDetails() {
+  const text = [
+    '🔗 EV Charge Summary',
+    'Open: '+SUMMARY_URL,
+    '',
+    'Database URL: '+fbUrl,
+    'Web API Key: '+fbApiKey,
+    'User ID: '+_fbUid
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(()=>showToast('All details copied ✓','success')).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('All details copied ✓','success');
+  });
 }
 
 // ── CREDENTIALS ─────────────────────────────────────────────────────────────
