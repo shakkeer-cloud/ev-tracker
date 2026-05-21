@@ -469,9 +469,22 @@ async function binLoad() {
   return Array.isArray(data.record?.sessions) ? data.record.sessions : [];
 }
 
+const LS_BACKUP_KEY = 'ev_sessions_backup';
+
+function localBackupSave() {
+  try { localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(sessions)); } catch(e){}
+}
+function localBackupLoad() {
+  try {
+    const raw = localStorage.getItem(LS_BACKUP_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+
 async function loadData() {
   if(!binId||!binKey){ renderHistory(); renderSummary(); return; }
   showLoading('Loading...');
+  let loadedFromRemote = false;
   try {
     const raw = await binLoad();
     sessions = raw.map((s,i)=>({
@@ -487,16 +500,38 @@ async function loadData() {
       notes: s.notes||''
     }));
     sessions.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  } catch(e){ console.error(e); showToast('Load failed — check credentials','error'); }
+    loadedFromRemote = true;
+    localBackupSave(); // mirror to local after every successful load
+  } catch(e){
+    console.error(e);
+    // Fall back to local backup if remote fails
+    const backup = localBackupLoad();
+    if(backup && backup.length > 0){
+      sessions = backup;
+      sessions.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+      showToast('JSONBin unreachable — showing local backup','error');
+    } else {
+      showToast('Load failed — check credentials','error');
+    }
+  }
   hideLoading();
   renderHistory(); renderSummary();
 }
 
 async function saveData(msg='Saved ✓') {
   if(!binId||!binKey){ showToast('Set up JSONBin in Setup tab','error'); return false; }
+  // Safety guard: refuse to overwrite if session count drops by more than 50%
+  const backup = localBackupLoad();
+  if(backup && backup.length > 2 && sessions.length < backup.length * 0.5){
+    const ok = confirm(
+      `⚠️ Safety check\n\nAbout to save ${sessions.length} session(s), but the local backup has ${backup.length}.\n\nThis could overwrite your data. Continue?`
+    );
+    if(!ok){ showToast('Save cancelled','error'); return false; }
+  }
   showLoading('Saving...');
   try {
     await binSave();
+    localBackupSave(); // keep local mirror in sync
     hideLoading();
     showToast(msg,'success');
     return true;
