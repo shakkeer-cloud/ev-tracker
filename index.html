@@ -303,32 +303,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <!-- SETUP -->
 <div class="page" id="page-setup">
-  <div class="section-head"><div class="section-title">JSONBin Setup</div></div>
+  <div class="section-head"><div class="section-title">Firebase Setup</div></div>
 
   <div class="setup-step">
     <div class="setup-num">1</div>
     <div class="setup-body">
-      <div class="setup-title">Create free JSONBin account</div>
-      <div class="setup-text">Go to jsonbin.io → Sign up free (use Google or email).</div>
-      <button class="btn btn-ghost" style="margin-top:10px;width:auto;padding:8px 16px;font-size:13px;" onclick="window.open('https://jsonbin.io','_blank')">Open JSONBin ↗</button>
+      <div class="setup-title">Create a Firebase project</div>
+      <div class="setup-text">Go to console.firebase.google.com → Add project → enter a name → Continue (disable Google Analytics if you like) → Create project.</div>
+      <button class="btn btn-ghost" style="margin-top:10px;width:auto;padding:8px 16px;font-size:13px;" onclick="window.open('https://console.firebase.google.com','_blank')">Open Firebase Console ↗</button>
     </div>
   </div>
 
   <div class="setup-step">
     <div class="setup-num">2</div>
     <div class="setup-body">
-      <div class="setup-title">Get your API Key</div>
-      <div class="setup-text">After login → click your profile icon → API Keys → copy the <b>Secret Key</b> (starts with $2b$...)</div>
-      <input type="password" class="form-input" id="input-key" placeholder="$2b$10$..." style="margin-top:10px;">
+      <div class="setup-title">Enable Realtime Database</div>
+      <div class="setup-text">In your project → Build → Realtime Database → Create Database → choose any region → <b>Start in test mode</b> → Enable. Copy the <b>Database URL</b> (e.g. https://my-app-default-rtdb.firebaseio.com).</div>
+      <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
     </div>
   </div>
 
   <div class="setup-step">
     <div class="setup-num">3</div>
     <div class="setup-body">
-      <div class="setup-title">Create a Bin</div>
-      <div class="setup-text">Click <b>Bins → Create Bin</b> → paste <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;">{"sessions":[]}</code> as content → Create. Copy the <b>Bin ID</b> from the URL.</div>
-      <input type="text" class="form-input" id="input-bin" placeholder="Bin ID (e.g. 64a1b2c3d4e5f6...)" style="margin-top:10px;">
+      <div class="setup-title">Choose a secret path</div>
+      <div class="setup-text">Pick any private word or phrase — this is your data's path in the database. Only people who know it can access your data. Keep it safe and use it in the Summary page too.</div>
+      <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. shakkeer-ev-2024" style="margin-top:10px;" autocapitalize="off" autocorrect="off">
     </div>
   </div>
 
@@ -336,7 +336,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="setup-num">4</div>
     <div class="setup-body">
       <div class="setup-title">Save & connect</div>
-      <div class="setup-text">Tap Save — the app will instantly connect and load your data.</div>
+      <div class="setup-text">Tap Save — the app will instantly connect and load your data from Firebase.</div>
       <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
       <div class="cred-status" id="cred-status"></div>
     </div>
@@ -444,29 +444,30 @@ const BATTERY_KWH = 27.28;
 const APP_VERSION = '2.0';
 let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = [];
-let binId = localStorage.getItem('ev_bin_id') || '';
-let binKey = localStorage.getItem('ev_bin_key') || '';
+let fbUrl = localStorage.getItem('ev_firebase_url') || '';
+let fbPath = localStorage.getItem('ev_firebase_path') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
-// ── JSONBin API ──────────────────────────────────────────────────────────────
+// ── Firebase Realtime Database REST API ─────────────────────────────────────
+function fbEndpoint() {
+  // Normalise URL (strip trailing slash) then append secret path
+  return fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json';
+}
 async function binSave() {
-  const res = await fetch('https://api.jsonbin.io/v3/b/'+binId, {
+  const res = await fetch(fbEndpoint(), {
     method:'PUT',
-    headers:{'Content-Type':'application/json','X-Master-Key':binKey},
-    body: JSON.stringify({sessions})
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(sessions)
   });
   if(!res.ok) throw new Error('Save failed: '+res.status);
   return res.json();
 }
-
 async function binLoad() {
-  const res = await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {
-    headers:{'X-Master-Key':binKey}
-  });
+  const res = await fetch(fbEndpoint());
   if(!res.ok) throw new Error('Load failed: '+res.status);
   const data = await res.json();
-  return Array.isArray(data.record?.sessions) ? data.record.sessions : [];
+  return Array.isArray(data) ? data : [];
 }
 
 const LS_BACKUP_KEY = 'ev_sessions_backup';
@@ -588,10 +589,10 @@ async function init() {
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
   updateRateDisplay();
-  if(binId&&binKey){
-    document.getElementById('input-bin').value = binId;
-    document.getElementById('input-key').value = binKey;
-    document.getElementById('cred-status').textContent = '✓ Connected to JSONBin';
+  if(fbUrl&&fbPath){
+    document.getElementById('input-fb-url').value = fbUrl;
+    document.getElementById('input-fb-path').value = fbPath;
+    document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     await loadData();
   } else {
@@ -601,25 +602,26 @@ async function init() {
 
 // ── CREDENTIALS ─────────────────────────────────────────────────────────────
 async function saveCredentials() {
-  const key = document.getElementById('input-key').value.trim();
-  const bin = document.getElementById('input-bin').value.trim();
-  if(!key||!bin){ showToast('Enter both API key and Bin ID','error'); return; }
-  binKey = key; binId = bin;
-  localStorage.setItem('ev_bin_key', key);
-  localStorage.setItem('ev_bin_id', bin);
+  const url = document.getElementById('input-fb-url').value.trim();
+  const path = document.getElementById('input-fb-path').value.trim();
+  if(!url||!path){ showToast('Enter both Database URL and secret path','error'); return; }
+  fbUrl = url; fbPath = path;
+  localStorage.setItem('ev_firebase_url', url);
+  localStorage.setItem('ev_firebase_path', path);
   showLoading('Connecting...');
   try {
     await binLoad();
     hideLoading();
-    document.getElementById('cred-status').textContent = '✓ Connected to JSONBin';
+    document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     showToast('Connected ✓','success');
     await loadData();
   } catch(e){
     hideLoading();
-    document.getElementById('cred-status').textContent = '✗ Connection failed — check credentials';
+    document.getElementById('cred-status').textContent = '✗ Connection failed — check URL and path';
     document.getElementById('cred-status').className = 'cred-status error';
     showToast('Connection failed','error');
+    console.error(e);
   }
 }
 

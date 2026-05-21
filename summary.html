@@ -120,14 +120,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div id="connect-section" style="display:none;">
     <div class="connect-card">
       <div class="connect-title">Connect to data</div>
-      <div class="connect-sub">Enter your JSONBin Bin ID and a <strong>read-only Access Key</strong>. Create one at jsonbin.io → profile → Access Keys.</div>
+      <div class="connect-sub">Enter your Firebase Realtime Database URL and the <strong>secret path</strong> you chose when setting up the app.</div>
       <div class="form-group">
-        <label class="form-label">Bin ID</label>
-        <input type="text" class="form-input" id="input-bin" placeholder="e.g. 64a1b2c3d4e5f6...">
+        <label class="form-label">Database URL</label>
+        <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" autocapitalize="off" autocorrect="off">
       </div>
       <div class="form-group">
-        <label class="form-label">Access Key (Read Only)</label>
-        <input type="password" class="form-input" id="input-key" placeholder="Read-only access key...">
+        <label class="form-label">Secret Path</label>
+        <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. shakkeer-ev-2024" autocapitalize="off" autocorrect="off">
       </div>
       <button class="btn btn-primary" onclick="saveCredentials()">Connect</button>
     </div>
@@ -243,14 +243,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 const BATTERY_KWH = 27.28;
 const PIE_COLORS = ['#00e5a0','#f5a623','#4a90d9','#e05252','#9b8fd4','#38c9a0','#f07d3e','#56b4d3'];
 let sessions = [];
-let binId = localStorage.getItem('ev_summary_bin_id') || '';
-let binKey = localStorage.getItem('ev_summary_access_key') || '';
+let fbUrl = localStorage.getItem('ev_summary_firebase_url') || '';
+let fbPath = localStorage.getItem('ev_summary_firebase_path') || '';
 let logsVisible = false;
 let currentLogFilter = 'all';
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  if (binId && binKey) { showSummary(); await loadData(); }
+  if (fbUrl && fbPath) { showSummary(); await loadData(); }
   else { document.getElementById('connect-section').style.display = 'block'; }
 }
 
@@ -260,20 +260,20 @@ function showSummary() {
 }
 
 async function saveCredentials() {
-  const key = document.getElementById('input-key').value.trim();
-  const bin = document.getElementById('input-bin').value.trim();
-  if (!key || !bin) { showToast('Enter both fields', 'error'); return; }
-  binKey = key; binId = bin;
-  localStorage.setItem('ev_summary_access_key', key);
-  localStorage.setItem('ev_summary_bin_id', bin);
+  const url = document.getElementById('input-fb-url').value.trim();
+  const path = document.getElementById('input-fb-path').value.trim();
+  if (!url || !path) { showToast('Enter both fields', 'error'); return; }
+  fbUrl = url; fbPath = path;
+  localStorage.setItem('ev_summary_firebase_url', url);
+  localStorage.setItem('ev_summary_firebase_path', path);
   showSummary();
   await loadData();
 }
 
 function disconnect() {
-  localStorage.removeItem('ev_summary_bin_id');
-  localStorage.removeItem('ev_summary_access_key');
-  binId = ''; binKey = ''; sessions = [];
+  localStorage.removeItem('ev_summary_firebase_url');
+  localStorage.removeItem('ev_summary_firebase_path');
+  fbUrl = ''; fbPath = ''; sessions = [];
   document.getElementById('summary-section').style.display = 'none';
   document.getElementById('connect-section').style.display = 'block';
 }
@@ -282,12 +282,11 @@ function disconnect() {
 async function loadData() {
   showLoading();
   try {
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
-      headers: { 'X-Access-Key': binKey }
-    });
+    const endpoint = fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json';
+    const res = await fetch(endpoint);
     if (!res.ok) throw new Error('Load failed: ' + res.status);
     const data = await res.json();
-    const raw = Array.isArray(data.record?.sessions) ? data.record.sessions : [];
+    const raw = Array.isArray(data) ? data : [];
     sessions = raw.map((s, i) => ({
       id: s.id || ('s' + i),
       date: normalizeDate(s.date),
