@@ -344,15 +344,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="setup-num">5</div>
     <div class="setup-body">
       <div class="setup-title">Set secure database rules</div>
-      <div class="setup-text">Realtime Database → Rules → replace with the code below → <b>Publish</b>. Your data will be locked to your device only.<br><code style="display:block;background:var(--surface2);padding:8px 10px;border-radius:6px;font-size:11px;margin-top:8px;line-height:1.8;word-break:break-all;">{"rules":{"users":{"$uid":{".read":"auth.uid == $uid",".write":"auth.uid == $uid"}}}}</code></div>
+      <div class="setup-text">Realtime Database → Rules → replace with the code below → <b>Publish</b>. This blocks public access while letting any signed-in device read/write your data.<br><code style="display:block;background:var(--surface2);padding:8px 10px;border-radius:6px;font-size:11px;margin-top:8px;line-height:1.8;word-break:break-all;">{"rules":{".read":"auth != null",".write":"auth != null"}}</code></div>
     </div>
   </div>
 
   <div class="setup-step">
     <div class="setup-num">6</div>
     <div class="setup-body">
+      <div class="setup-title">Choose a secret path</div>
+      <div class="setup-text">Pick any private word or phrase (e.g. <b>mycar2024</b>). This becomes your data's location in the database — keep it secret.</div>
+      <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. mycar2024" style="margin-top:10px;" autocapitalize="off" autocorrect="off" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="setup-step">
+    <div class="setup-num">7</div>
+    <div class="setup-body">
       <div class="setup-title">Connect</div>
-      <div class="setup-text">Tap Save — the app signs in anonymously and creates your private data space.</div>
+      <div class="setup-text">Tap Save — the app signs in anonymously and links to your private data space.</div>
       <button class="btn btn-primary" style="margin-top:10px;" onclick="saveCredentials()">Save & Connect</button>
       <div class="cred-status" id="cred-status"></div>
     </div>
@@ -389,10 +398,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
 
       <div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">User ID</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Secret Path</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <div id="fb-uid-display" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
-          <button onclick="copyShareItem('fb-uid-display','User ID')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
+          <div id="share-path" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
+          <button onclick="copyShareItem('share-path','Secret Path')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
         </div>
       </div>
 
@@ -504,8 +513,8 @@ let currentRate = parseFloat(localStorage.getItem('ev_rate') || '0.399');
 let sessions = [];
 let fbUrl = localStorage.getItem('ev_firebase_url') || '';
 let fbApiKey = localStorage.getItem('ev_firebase_apikey') || '';
+let fbPath = localStorage.getItem('ev_firebase_path') || '';
 let _fbToken = ''; let _fbTokenExpiry = 0;
-let _fbUid = localStorage.getItem('ev_firebase_uid') || '';
 const pctVals = { before:0, after:0, 'edit-before':0, 'edit-after':0 };
 let holdTimer=null, holdInterval=null, holdActive=false;
 
@@ -527,23 +536,21 @@ async function getToken() {
       }
     } catch(e) {}
   }
-  // First time — sign in anonymously, get a permanent UID
+  // First time — sign in anonymously
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${fbApiKey}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({returnSecureToken:true})});
   if (!r.ok) throw new Error('Auth failed: '+r.status);
   const d = await r.json();
   _fbToken = d.idToken; _fbTokenExpiry = Date.now() + d.expiresIn*1000;
-  _fbUid = d.localId;
   localStorage.setItem('ev_firebase_rt', d.refreshToken);
-  localStorage.setItem('ev_firebase_uid', d.localId);
   return _fbToken;
 }
 
 // ── Firebase Realtime Database REST API ─────────────────────────────────────
-// Data lives at users/<uid>/sessions — only that UID can read/write it
+// Data lives at <secret-path>/sessions — same path works on all devices
 function fbEndpoint(token) {
-  return fbUrl.replace(/\/+$/,'') + '/users/' + _fbUid + '/sessions.json?auth=' + token;
+  return fbUrl.replace(/\/+$/,'') + '/' + fbPath + '/sessions.json?auth=' + token;
 }
 async function binSave() {
   const token = await getToken();
@@ -580,7 +587,7 @@ function localBackupLoad() {
 }
 
 async function loadData() {
-  if(!fbUrl||!fbApiKey){ renderHistory(); renderSummary(); return; }
+  if(!fbUrl||!fbApiKey||!fbPath){ renderHistory(); renderSummary(); return; }
   showLoading('Loading...');
   let loadedFromRemote = false;
   try {
@@ -617,7 +624,7 @@ async function loadData() {
 }
 
 async function saveData(msg='Saved ✓') {
-  if(!fbUrl||!fbApiKey){ showToast('Set up Firebase in Setup tab','error'); return false; }
+  if(!fbUrl||!fbApiKey||!fbPath){ showToast('Set up Firebase in Setup tab','error'); return false; }
   // Safety guard: refuse to overwrite if session count drops by more than 50%
   const backup = localBackupLoad();
   if(backup && backup.length > 2 && sessions.length < backup.length * 0.5){
@@ -686,10 +693,11 @@ async function init() {
   document.getElementById('log-date').value = now.toISOString().split('T')[0];
   document.getElementById('log-time').value = now.toTimeString().slice(0,5);
   updateRateDisplay();
-  if(fbUrl&&fbApiKey){
+  if(fbUrl&&fbApiKey&&fbPath){
     document.getElementById('input-fb-url').value = fbUrl;
     document.getElementById('input-fb-apikey').value = fbApiKey;
-    showUid();
+    document.getElementById('input-fb-path').value = fbPath;
+    showShareCard();
     document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     await loadData();
@@ -700,26 +708,20 @@ async function init() {
 
 const SUMMARY_URL = 'https://shakkeer-cloud.github.io/ev-tracker/summary.html';
 
-function showUid() {
-  if(!_fbUid) return;
-  const uidEl = document.getElementById('fb-uid-display');
-  if(uidEl) uidEl.textContent = _fbUid;
-  // Populate and show share card
+function showShareCard() {
+  if(!fbUrl||!fbApiKey||!fbPath) return;
   const card = document.getElementById('share-card');
   if(!card) return;
-  const linkEl = document.getElementById('share-link');
-  const urlEl = document.getElementById('share-url');
-  const keyEl = document.getElementById('share-apikey');
-  if(linkEl) linkEl.textContent = SUMMARY_URL;
-  if(urlEl) urlEl.textContent = fbUrl;
-  if(keyEl) keyEl.textContent = fbApiKey;
+  document.getElementById('share-link').textContent = SUMMARY_URL;
+  document.getElementById('share-url').textContent = fbUrl;
+  document.getElementById('share-apikey').textContent = fbApiKey;
+  document.getElementById('share-path').textContent = fbPath;
   card.style.display = 'block';
 }
 
 function copyShareItem(id, label) {
   const text = document.getElementById(id)?.textContent || '';
   navigator.clipboard.writeText(text).then(()=>showToast(label+' copied ✓','success')).catch(()=>{
-    // fallback
     const ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
@@ -734,7 +736,7 @@ function copyAllShareDetails() {
     '',
     'Database URL: '+fbUrl,
     'Web API Key: '+fbApiKey,
-    'User ID: '+_fbUid
+    'Secret Path: '+fbPath
   ].join('\n');
   navigator.clipboard.writeText(text).then(()=>showToast('All details copied ✓','success')).catch(()=>{
     const ta = document.createElement('textarea');
@@ -748,18 +750,19 @@ function copyAllShareDetails() {
 async function saveCredentials() {
   const url = document.getElementById('input-fb-url').value.trim();
   const apikey = document.getElementById('input-fb-apikey').value.trim();
-  if(!url||!apikey){ showToast('Enter Database URL and API Key','error'); return; }
-  fbUrl = url; fbApiKey = apikey;
+  const path = document.getElementById('input-fb-path').value.trim();
+  if(!url||!apikey||!path){ showToast('Fill in all fields','error'); return; }
+  fbUrl = url; fbApiKey = apikey; fbPath = path;
   localStorage.setItem('ev_firebase_url', url);
   localStorage.setItem('ev_firebase_apikey', apikey);
+  localStorage.setItem('ev_firebase_path', path);
   localStorage.removeItem('ev_firebase_rt');
-  localStorage.removeItem('ev_firebase_uid');
-  _fbToken = ''; _fbTokenExpiry = 0; _fbUid = '';
+  _fbToken = ''; _fbTokenExpiry = 0;
   showLoading('Connecting...');
   try {
     await binLoad();
     hideLoading();
-    showUid();
+    showShareCard();
     document.getElementById('cred-status').textContent = '✓ Connected to Firebase';
     document.getElementById('cred-status').className = 'cred-status connected';
     showToast('Connected ✓','success');
