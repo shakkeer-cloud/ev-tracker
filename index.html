@@ -712,7 +712,8 @@ function showShareCard() {
   if(!fbUrl||!fbApiKey||!fbPath) return;
   const card = document.getElementById('share-card');
   if(!card) return;
-  document.getElementById('share-link').textContent = SUMMARY_URL;
+  const link = SUMMARY_URL + '?u=' + encodeURIComponent(fbUrl) + '&k=' + encodeURIComponent(fbApiKey);
+  document.getElementById('share-link').textContent = link;
   document.getElementById('share-url').textContent = fbUrl;
   document.getElementById('share-apikey').textContent = fbApiKey;
   document.getElementById('share-path').textContent = fbPath;
@@ -730,12 +731,11 @@ function copyShareItem(id, label) {
 }
 
 function copyAllShareDetails() {
+  const link = SUMMARY_URL + '?u=' + encodeURIComponent(fbUrl) + '&k=' + encodeURIComponent(fbApiKey);
   const text = [
     '🔗 EV Charge Summary',
-    'Open: '+SUMMARY_URL,
+    'Open: '+link,
     '',
-    'Database URL: '+fbUrl,
-    'Web API Key: '+fbApiKey,
     'Secret Path: '+fbPath
   ].join('\n');
   navigator.clipboard.writeText(text).then(()=>showToast('All details copied ✓','success')).catch(()=>{

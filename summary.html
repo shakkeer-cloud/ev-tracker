@@ -120,17 +120,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div id="connect-section" style="display:none;">
     <div class="connect-card">
       <div class="connect-title">Connect to data</div>
-      <div class="connect-sub">Enter your Firebase credentials from the app's Setup tab.</div>
-      <div class="form-group">
-        <label class="form-label">Database URL</label>
-        <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" autocapitalize="off" autocorrect="off">
+      <div class="connect-sub" id="connect-sub-text">Enter the secret path shared by the owner to view their charging stats.</div>
+      <!-- Fallback fields shown only when URL params are missing -->
+      <div id="full-cred-fields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Database URL</label>
+          <input type="text" class="form-input" id="input-fb-url" placeholder="https://my-app-default-rtdb.firebaseio.com" autocapitalize="off" autocorrect="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Web API Key</label>
+          <input type="text" class="form-input" id="input-fb-apikey" placeholder="AIzaSy..." autocapitalize="off" autocorrect="off">
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Web API Key</label>
-        <input type="text" class="form-input" id="input-fb-apikey" placeholder="AIzaSy..." autocapitalize="off" autocorrect="off">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Secret Path (from app Setup tab)</label>
+        <label class="form-label">Secret Path</label>
         <input type="text" class="form-input" id="input-fb-path" placeholder="e.g. mycar2024" autocapitalize="off" autocorrect="off" autocomplete="off">
       </div>
       <button class="btn btn-primary" onclick="saveCredentials()">Connect</button>
@@ -282,8 +285,19 @@ async function getToken() {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  if (fbUrl && fbApiKey && fbPath) { showSummary(); await loadData(); }
-  else { document.getElementById('connect-section').style.display = 'block'; }
+  // Pick up url+key from share link query params (override stored values)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('u')) { fbUrl = params.get('u'); localStorage.setItem('ev_summary_firebase_url', fbUrl); }
+  if (params.get('k')) { fbApiKey = params.get('k'); localStorage.setItem('ev_summary_firebase_apikey', fbApiKey); }
+
+  if (fbUrl && fbApiKey && fbPath) { showSummary(); await loadData(); return; }
+
+  // Show connect form — hide DB URL/key fields if we got them from URL params
+  document.getElementById('connect-section').style.display = 'block';
+  if (!fbUrl || !fbApiKey) {
+    document.getElementById('full-cred-fields').style.display = 'block';
+    document.getElementById('connect-sub-text').textContent = 'Enter your Firebase credentials from the app\'s Setup tab.';
+  }
 }
 
 function showSummary() {
@@ -292,13 +306,19 @@ function showSummary() {
 }
 
 async function saveCredentials() {
-  const url = document.getElementById('input-fb-url').value.trim();
-  const apikey = document.getElementById('input-fb-apikey').value.trim();
+  const fullFields = document.getElementById('full-cred-fields');
+  if (fullFields.style.display !== 'none') {
+    const url = document.getElementById('input-fb-url').value.trim();
+    const apikey = document.getElementById('input-fb-apikey').value.trim();
+    if (!url || !apikey) { showToast('Fill in all fields', 'error'); return; }
+    fbUrl = url; fbApiKey = apikey;
+    localStorage.setItem('ev_summary_firebase_url', url);
+    localStorage.setItem('ev_summary_firebase_apikey', apikey);
+  }
   const path = document.getElementById('input-fb-path').value.trim();
-  if (!url || !apikey || !path) { showToast('Fill in all fields', 'error'); return; }
-  fbUrl = url; fbApiKey = apikey; fbPath = path;
-  localStorage.setItem('ev_summary_firebase_url', url);
-  localStorage.setItem('ev_summary_firebase_apikey', apikey);
+  if (!path) { showToast('Enter the secret path', 'error'); return; }
+  if (!fbUrl || !fbApiKey) { showToast('Missing credentials — use the share link', 'error'); return; }
+  fbPath = path;
   localStorage.setItem('ev_summary_firebase_path', path);
   localStorage.removeItem('ev_summary_firebase_rt');
   _fbToken = ''; _fbTokenExpiry = 0;
