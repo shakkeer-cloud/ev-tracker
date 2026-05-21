@@ -378,32 +378,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button onclick="copyShareItem('share-link','Link')" style="flex-shrink:0;padding:8px 12px;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);color:var(--accent);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
       </div>
 
-      <div class="card-title" style="margin-top:4px;">Login details for the summary page</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">The recipient enters these on the summary page to connect to your data.</div>
-
-      <div style="margin-bottom:10px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Database URL</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div id="share-url" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
-          <button onclick="copyShareItem('share-url','Database URL')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:10px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Web API Key</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div id="share-apikey" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-          <button onclick="copyShareItem('share-apikey','API Key')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
-        </div>
-      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">The recipient only needs to enter the secret path — the link handles everything else.</div>
 
       <div>
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-family:'DM Mono',monospace;">Secret Path</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <div id="share-path" style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
+          <div id="share-path" style="flex:1;font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);background:var(--surface2);padding:9px 10px;border-radius:6px;word-break:break-all;"></div>
           <button onclick="copyShareItem('share-path','Secret Path')" style="flex-shrink:0;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Copy</button>
         </div>
       </div>
+      <!-- Hidden elements kept for JS compatibility -->
+      <div id="share-url" style="display:none;"></div>
+      <div id="share-apikey" style="display:none;"></div>
 
       <button onclick="copyAllShareDetails()" class="btn btn-primary" style="margin-top:16px;font-size:13px;">📋 Copy all details</button>
     </div>
